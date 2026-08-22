@@ -36,6 +36,7 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::sniff_mtk_hblr::MtkHblrF;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -131,6 +132,7 @@ pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenF
     try_format!(MbrF, true, "MBR");
     try_format!(FbpackF, true, "fbpack");
     try_format!(F2fsF, true, "f2fs");
+    try_format!(MtkHblrF, true, "HBLR");
     try_format!(LzmaF, true, "lzma");
     try_format!(MtkDbgF, true, "mtk_dbg");
     try_format!(Esp32F, true, "esp32_fw");

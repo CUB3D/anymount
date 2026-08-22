@@ -256,6 +256,7 @@ pub mod upx;
 pub mod vendor_boot;
 pub mod wip_garmin;
 pub mod zip;
+pub mod sniff_mtk_hblr;
 // hsp: no libs
 // UBI-flash?
 // RAR files
