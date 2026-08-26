@@ -7,7 +7,7 @@ use tracing::warn;
 use crate::abootimg::AbootimgF;
 use crate::bzip::BzipF;
 use crate::der_cert::DerCertF;
-use crate::dtbo::DtboF;
+use crate::dtb::DtbF;
 use crate::erofs::ErofsF;
 use crate::ext4::Ext4F;
 use crate::fbpack::FbpackF;
@@ -25,18 +25,19 @@ use crate::protbuf_raw::PBufF;
 use crate::qcow2::Qcow2F;
 use crate::rar::RarFile;
 use crate::sniff_allwinner::AllwinnerA10F;
+use crate::sniff_dtbo::DtboF;
 use crate::sniff_esp32::Esp32F;
 use crate::sniff_f2fs::F2fsF;
+use crate::sniff_mtk_hblr::MtkHblrF;
 use crate::sniff_shannon::ShannonF;
 use crate::update_app::UpdateAppF;
 use crate::upx::UpxF;
 use crate::{
     TarFile, ZipFile, android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, qcom_ptbl::Ptbl,
-    tlv::TlvF, vendor_boot::VendorBoot,
+    sniff_vbmeta::VbmetaF, tlv::TlvF, vendor_boot::VendorBoot,
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
-use crate::sniff_mtk_hblr::MtkHblrF;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -109,6 +110,7 @@ pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenF
     try_format!(PBufF, true, "protobuf");
     try_format!(LinuzZImgF, true, "linux_zimg");
     try_format!(DtboF, true, "dtbo");
+    try_format!(DtbF, true, "dtb");
     try_format!(ShannonF, true, "shannon");
     try_format!(Ext4F, false, "ext4");
     try_format!(PemCertF, true, "pem_cert");
@@ -139,6 +141,7 @@ pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenF
     try_format!(UpdateAppF, true, "update_app");
     try_format!(RarFile, false, "rar");
     try_format!(AllwinnerA10F, true, "allwinner_a10");
+    try_format!(VbmetaF, true, "vbmeta");
 
     None
 }

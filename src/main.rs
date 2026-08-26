@@ -221,7 +221,7 @@ pub mod bzip;
 pub mod chomeos_ota;
 pub mod cpio;
 pub mod der_cert;
-pub mod dtbo;
+pub mod dtb;
 pub mod erofs;
 pub mod ext4;
 pub mod fbpack;
@@ -246,9 +246,12 @@ pub mod qcom_ptbl;
 pub mod qcow2;
 pub mod rar;
 pub mod sniff_allwinner;
+pub mod sniff_dtbo;
 pub mod sniff_esp32;
 pub mod sniff_f2fs;
+pub mod sniff_mtk_hblr;
 pub mod sniff_shannon;
+pub mod sniff_vbmeta;
 pub mod tar;
 pub mod tlv;
 pub mod update_app;
@@ -256,7 +259,6 @@ pub mod upx;
 pub mod vendor_boot;
 pub mod wip_garmin;
 pub mod zip;
-pub mod sniff_mtk_hblr;
 // hsp: no libs
 // UBI-flash?
 // RAR files

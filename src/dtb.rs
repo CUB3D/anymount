@@ -10,16 +10,16 @@ use crate::{
     generic_fs::GenFS,
 };
 
-pub struct DtboF {
+pub struct DtbF {
     pub idx: usize,
     pub o: Vec<BufGenItm>,
 }
 
-impl GenFSProps for DtboF {
-    const FORMAT_NAME: &'static str = "dtbo";
+impl GenFSProps for DtbF {
+    const FORMAT_NAME: &'static str = "dtb";
 }
 
-impl GenFS for DtboF {
+impl GenFS for DtbF {
     fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
     where
         Self: Sized,
@@ -46,8 +46,7 @@ impl GenFS for DtboF {
     where
         Self: Sized,
     {
-        let dt = Reader::read(f.as_ref()).is_ok();
-        Ok(dt)
+        Ok(Reader::read(f.as_ref()).is_ok())
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
