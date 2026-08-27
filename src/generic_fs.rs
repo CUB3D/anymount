@@ -74,19 +74,7 @@ pub trait GenFS {
     }
 }
 
-pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenFS>> {
-    if let Ok(meta) = std::fs::metadata(p)
-        && meta.size() > 1024 * 1024 * 1024 * 2
-    {
-        warn!("This file is > 2G, hope you have ram for that...");
-    }
-
-    if !std::fs::exists(p).unwrap_or(false) {
-        warn!("File '{}' doesn't exist", p.display());
-        return None;
-    }
-
-    let f = MappedFile::open(p);
+pub(crate) fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn GenFS>> {
     let fref = f.get_ref();
 
     macro_rules! try_format {
@@ -144,4 +132,21 @@ pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenF
     try_format!(VbmetaF, true, "vbmeta");
 
     None
+}
+
+pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenFS>> {
+    if let Ok(meta) = std::fs::metadata(p)
+        && meta.size() > 1024 * 1024 * 1024 * 2
+    {
+        warn!("This file is > 2G, hope you have ram for that...");
+    }
+
+    if !std::fs::exists(p).unwrap_or(false) {
+        warn!("File '{}' doesn't exist", p.display());
+        return None;
+    }
+
+    let f = MappedFile::open(p);
+
+    try_open_mem(f, format)
 }

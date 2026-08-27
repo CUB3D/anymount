@@ -10,6 +10,7 @@ use crate::generic_fs_props::GenFSProps;
 use crate::{gen_item::GenItem, generic_fs::GenFS};
 
 #[derive(Debug)]
+#[expect(dead_code)]
 struct PackEntV2 {
     ty: u32,
     name: String,
@@ -21,6 +22,7 @@ struct PackEntV2 {
 }
 
 #[derive(Debug)]
+#[expect(dead_code)]
 struct PackEntV1 {
     ty: u32,
     name: String,
@@ -66,12 +68,12 @@ impl GenFS for FbpackF {
     where
         Self: Sized,
     {
-        let (i, magic) = le_u32(f.mmap)?;
+        let (i, _magic) = le_u32(f.mmap)?;
         let (i, version) = le_u32(i)?;
         if version == 1 {
-            let (i, img_ver) = take_arr::<68>(i)?;
+            let (i, _img_ver) = take_arr::<68>(i)?;
             let (i, ent_cnt) = le_u32(i)?;
-            let (i, sz) = le_u32(i)?;
+            let (i, _sz) = le_u32(i)?;
 
             //TODO: this might be buggy, test on pixel11 radio.img
 
@@ -127,14 +129,14 @@ impl GenFS for FbpackF {
                 f: f.owned_map(),
             })
         } else if version == 2 {
-            let (i, header_sz) = le_u32(i)?;
-            let (i, entry_header_sz) = le_u32(i)?;
-            let (i, pltform) = take_arr::<16>(i)?;
-            let (i, ver) = take_arr::<64>(i)?;
-            let (i, typ) = le_u32(i)?;
-            let (i, align) = le_u32(i)?;
+            let (i, _header_sz) = le_u32(i)?;
+            let (i, _entry_header_sz) = le_u32(i)?;
+            let (i, _pltform) = take_arr::<16>(i)?;
+            let (i, _ver) = take_arr::<64>(i)?;
+            let (i, _typ) = le_u32(i)?;
+            let (i, _align) = le_u32(i)?;
             let (i, ent_cnt) = le_u32(i)?;
-            let (i, sz) = le_u32(i)?;
+            let (i, _sz) = le_u32(i)?;
 
             fn read_pack_ent_v2(i: &[u8]) -> anyhow::Result<(&[u8], PackEntV2)> {
                 let (i, ty) = le_u32(i)?;

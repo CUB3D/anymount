@@ -13,7 +13,7 @@ impl GenFSProps for DtboF {
 }
 
 impl GenFS for DtboF {
-    fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
+    fn try_open_internal(_f: &FileRef) -> anyhow::Result<Self>
     where
         Self: Sized,
     {

@@ -51,6 +51,10 @@ enum Cmd {
         #[clap(required = false, long)]
         fmt: Option<String>,
     },
+    Browse {
+        #[clap(required = true)]
+        pth: String,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -86,6 +90,21 @@ fn main() -> anyhow::Result<()> {
                     break;
                 }
                 println!("---");
+            }
+        }
+        Cmd::Browse { pth } => {
+            let pth = PathBuf::from(pth);
+            let pth = std::fs::canonicalize(pth)?;
+
+            if !pth.exists() {
+                error!("Src file not found");
+                return Ok(());
+            }
+
+            if let Some(f) = generic_fs::try_open(&pth, None) {
+                gui::run_gui(f, &pth);
+            } else {
+                error!("Failed to open file");
             }
         }
         Cmd::Ext(ext) => {
@@ -228,6 +247,7 @@ pub mod fbpack;
 pub mod file_ref;
 mod fuse;
 mod generic_fs_props;
+pub mod gui;
 pub mod gzip;
 pub mod hmfs;
 pub mod liblp;
