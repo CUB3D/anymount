@@ -208,7 +208,7 @@ impl GenFS for FbpackF {
                         let fdata = &self.f[e.data_offset as usize..];
                         let fsz = sz.min(fdata.len() as u64);
                         let fdata = &fdata[..fsz as usize];
-                        data[..fsz as usize].copy_from_slice(&fdata);
+                        data[..fsz as usize].copy_from_slice(fdata);
                         Ok(Some(Box::new(BufGenItm::new(e.name.clone(), data))))
                     }
                 }

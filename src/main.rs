@@ -6,7 +6,7 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use std::fmt::Debug;
 use std::fs::OpenOptions;
-use std::io::{Read, Write};
+use std::io::{Write};
 use std::path::{Path, PathBuf};
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
@@ -79,6 +79,7 @@ fn main() -> anyhow::Result<()> {
     match args.cmd {
         #[cfg(target_os = "linux")]
         Cmd::Mnt { pth, src } => {
+            use std::io::{Read, Write};
             std::thread::spawn(move || {
                 fuse::fuse_mnt::fuse_mount(pth, src);
             });
@@ -101,8 +102,8 @@ fn main() -> anyhow::Result<()> {
                 return Ok(());
             }
 
-            if let Some(f) = generic_fs::try_open(&pth, None) {
-                gui::run_gui(f, &pth);
+            if let Some(_f) = generic_fs::try_open(&pth, None) {
+                // gui::run_gui(f, &pth);
             } else {
                 error!("Failed to open file");
             }
@@ -245,9 +246,10 @@ pub mod erofs;
 pub mod ext4;
 pub mod fbpack;
 pub mod file_ref;
+#[cfg(target_os = "linux")]
 mod fuse;
 mod generic_fs_props;
-pub mod gui;
+// pub mod gui;
 pub mod gzip;
 pub mod hmfs;
 pub mod liblp;
