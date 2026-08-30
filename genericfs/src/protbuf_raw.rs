@@ -71,11 +71,10 @@ impl GenFS for PBufF {
         }
 
         self.idx += 1;
-        Ok(Some(Box::new(BufGenItm {
-            name: "protobuf_data".to_string(),
-            data: s.as_bytes().to_vec(),
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new(
+            "protobuf_data",
+            s.as_bytes().to_vec(),
+        ))))
     }
 
     fn name(&self) -> &str {

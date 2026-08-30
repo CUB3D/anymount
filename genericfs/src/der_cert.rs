@@ -30,13 +30,12 @@ impl GenFS for DerCertF {
         let mod_ = pkey.rsa()?;
         let mod_ = mod_.n();
 
-        o.push(BufGenItm {
-            pos: 0,
-            data: format!("Modulus: {}", mod_.to_dec_str()?)
+        o.push(BufGenItm::new(
+            "_modulus.txt",
+            format!("Modulus: {}", mod_.to_dec_str()?)
                 .as_bytes()
                 .to_vec(),
-            name: "_modulus.txt".to_string(),
-        });
+        ));
 
         Ok(Self { o, idx: 0 })
     }

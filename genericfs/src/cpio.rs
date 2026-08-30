@@ -41,11 +41,7 @@ impl GenFS for CpioFile {
             if size == 0 {
                 info!("Skipping 0 size {name}");
             } else {
-                ents.push(BufGenItm {
-                    name,
-                    data: d,
-                    pos: 0,
-                });
+                ents.push(BufGenItm::new(name, d));
             }
         }
 

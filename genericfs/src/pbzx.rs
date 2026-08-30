@@ -45,11 +45,7 @@ impl GenFS for PbzxF {
         let mut reader = PbzxReader::new(self.mmap.as_ref())?;
         let d = reader.decompress()?;
         self.idx += 1;
-        Ok(Some(Box::new(BufGenItm {
-            name: "_dec".to_string(),
-            data: d,
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new("_dec", d))))
     }
 
     fn name(&self) -> &str {

@@ -244,11 +244,10 @@ impl GenFS for LibLPf {
                 let e = &self.extents[p.first_extent_index as usize];
                 let data =
                     &self.map[e.target_data as usize * 512..][..e.num_sectors as usize * 512];
-                Ok(Some(Box::new(BufGenItm {
-                    name: format!("partition-{}", p.name),
-                    data: data.to_vec(),
-                    pos: 0,
-                })))
+                Ok(Some(Box::new(BufGenItm::new(
+                    format!("partition-{}", p.name),
+                    data.to_vec(),
+                ))))
             }
             None => Ok(None),
         }

@@ -85,11 +85,7 @@ impl GenFS for Ext4F {
 
             if ft.is_regular_file() {
                 let data = ext.read(&entry.path())?;
-                o.push(BufGenItm {
-                    pos: 0,
-                    name: entry.file_name().as_str()?.to_string(),
-                    data,
-                });
+                o.push(BufGenItm::new(entry.file_name().as_str()?, data));
             }
         }
 

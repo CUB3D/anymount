@@ -45,11 +45,7 @@ impl GenFS for BzipF {
         let mut d = Vec::new();
         f.read_to_end(&mut d)?;
         self.idx += 1;
-        Ok(Some(Box::new(BufGenItm {
-            name: "_dec".to_string(),
-            data: d,
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new("_dec", d))))
     }
 
     fn name(&self) -> &str {

@@ -140,11 +140,10 @@ impl GenFS for OhosF {
 
             info!("{} : {}", c.name, c.data_sz);
 
-            o.push(BufGenItm {
-                pos: 0,
-                data: _data.to_vec(),
-                name: format!("./{}.bin", c.name.clone()),
-            });
+            o.push(BufGenItm::new(
+                format!("./{}.bin", c.name.clone()),
+                _data.to_vec(),
+            ));
         }
 
         Ok(Self { idx: 0, o })

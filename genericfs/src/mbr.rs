@@ -51,11 +51,10 @@ impl GenFS for MbrF {
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
         if self.idx == 0 {
             self.idx += 1;
-            return Ok(Some(Box::new(BufGenItm {
-                data: format!("{:?}", self.mbr).as_bytes().to_vec(),
-                name: "_mbr_info.txt".to_string(),
-                pos: 0,
-            })));
+            return Ok(Some(Box::new(BufGenItm::new(
+                "_mbr_info.txt",
+                format!("{:?}", self.mbr).as_bytes().to_vec(),
+            ))));
         } else if let Some((pidx, p)) = self.mbr.iter().nth(self.idx - 1) {
             if p.sectors > 0 {
                 let size = p.sectors as u64 * self.mbr.sector_size as u64;
@@ -71,11 +70,10 @@ impl GenFS for MbrF {
                     [..file_size as usize];
                 d[..file_size as usize].copy_from_slice(data);
 
-                return Ok(Some(Box::new(BufGenItm {
-                    data: d,
-                    name: format!("partition_{}", pidx),
-                    pos: 0,
-                })));
+                return Ok(Some(Box::new(BufGenItm::new(
+                    format!("partition_{}", pidx),
+                    d,
+                ))));
             }
 
             self.idx += 1;

@@ -44,11 +44,7 @@ impl GenFS for TarFile {
 
             let name = b.path()?.file_name().unwrap().to_string_lossy().to_string();
             debug!("tar: {}", name);
-            x.push(BufGenItm {
-                name,
-                data: d,
-                pos: 0,
-            });
+            x.push(BufGenItm::new(name, d));
         }
 
         Ok(Self {

@@ -51,11 +51,7 @@ impl GenFS for LzmaF {
         let mut out = Vec::new();
         reader.read_to_end(&mut out)?;
         self.idx += 1;
-        Ok(Some(Box::new(BufGenItm {
-            name: "_dec".to_string(),
-            data: out,
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new("_dec", out))))
     }
 
     fn name(&self) -> &str {

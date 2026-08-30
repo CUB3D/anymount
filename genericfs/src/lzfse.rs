@@ -44,11 +44,7 @@ impl GenFS for LzfseF {
         let mut d = Vec::new();
         lzfse_rust::decode_bytes(&self.f[..], &mut d)?;
         self.idx += 1;
-        Ok(Some(Box::new(BufGenItm {
-            name: "_dec".to_string(),
-            data: d,
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new("_dec", d))))
     }
 
     fn name(&self) -> &str {

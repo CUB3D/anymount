@@ -55,11 +55,10 @@ impl GenFS for TlvF {
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
         if let Some(t) = self.t.get(self.idx) {
             self.idx += 1;
-            Ok(Some(Box::new(BufGenItm {
-                data: t.val.clone(),
-                name: format!("tlv_{:04x}", t.tag),
-                pos: 0,
-            })))
+            Ok(Some(Box::new(BufGenItm::new(
+                format!("tlv_{:04x}", t.tag),
+                t.val.clone(),
+            ))))
         } else {
             Ok(None)
         }

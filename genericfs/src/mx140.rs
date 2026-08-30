@@ -76,11 +76,10 @@ impl GenFS for Mx140F {
                 .get(&t.tag)
                 .map(|c| c.to_string())
                 .unwrap_or(format!("{:04x}", t.tag));
-            Ok(Some(Box::new(BufGenItm {
-                data: t.val.clone(),
-                name: format!("{}.bin", name),
-                pos: 0,
-            })))
+            Ok(Some(Box::new(BufGenItm::new(
+                format!("{}.bin", name),
+                t.val.clone(),
+            ))))
         } else {
             Ok(None)
         }

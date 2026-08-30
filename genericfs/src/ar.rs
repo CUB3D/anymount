@@ -36,11 +36,7 @@ impl GenFS for UnixArF {
             let mut d = Vec::new();
             entry.read_to_end(&mut d)?;
 
-            ents.push(BufGenItm {
-                name,
-                data: d,
-                pos: 0,
-            });
+            ents.push(BufGenItm::new(name, d));
         }
 
         Ok(Self { ents, idx: 0 })

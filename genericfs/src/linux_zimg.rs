@@ -47,11 +47,7 @@ impl GenFS for LinuzZImgF {
         g.read_to_end(&mut dec)?;
 
         let mut o = Vec::new();
-        o.push(BufGenItm {
-            pos: 0,
-            name: "_kernel_decompressed".to_string(),
-            data: dec.clone(),
-        });
+        o.push(BufGenItm::new("_kernel_decompressed", dec.clone()));
 
         //TODO: this actually works on any kernel not just zimg
         let ikcfg_st = [0x49u8, 0x4B, 0x43, 0x46, 0x47, 0x5F, 0x53, 0x54];
@@ -81,11 +77,7 @@ impl GenFS for LinuzZImgF {
             let mut dec = Vec::new();
             GzDecoder::new(&cfg_compressed[..]).read_to_end(&mut dec)?;
 
-            o.push(BufGenItm {
-                pos: 0,
-                name: "_config".to_string(),
-                data: dec,
-            });
+            o.push(BufGenItm::new("_config", dec));
         }
 
         Ok(Self { o, idx: 0 })

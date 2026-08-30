@@ -78,11 +78,7 @@ impl GenFS for ZipFile {
         self.idx += 1;
         let mut d = Vec::with_capacity(f.size() as usize);
         f.read_to_end(&mut d)?;
-        Ok(Some(Box::new(BufGenItm {
-            name: f.name().to_string(),
-            data: d,
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new(f.name(), d))))
     }
 
     fn name(&self) -> &str {

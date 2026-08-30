@@ -28,36 +28,28 @@ impl GenFS for AbootimgF {
         let hdr = abootimg_oxide::Header::parse(&mut std::io::Cursor::new(mmap.as_ref()))?;
 
         let mut o = Vec::new();
-        o.push(BufGenItm {
-            pos: 0,
-            name: "_header_details.txt".to_string(),
-            data: format!("{:?}", hdr).to_string().as_bytes().to_vec(),
-        });
-        o.push(BufGenItm {
-            pos: 0,
-            name: "cmdline.txt".to_string(),
-            data: hdr.cmdline().to_vec(),
-        });
-        o.push(BufGenItm {
-            pos: 0,
-            name: "kernel".to_string(),
-            data: mmap.as_ref()[hdr.kernel_position()..][..hdr.kernel_size() as _].to_vec(),
-        });
-        o.push(BufGenItm {
-            pos: 0,
-            name: "ramdisk".to_string(),
-            data: mmap.as_ref()[hdr.ramdisk_position()..][..hdr.ramdisk_size() as _].to_vec(),
-        });
+        o.push(BufGenItm::new(
+            "_header_details.txt",
+            format!("{:?}", hdr).to_string().as_bytes().to_vec(),
+        ));
+        o.push(BufGenItm::new("cmdline.txt", hdr.cmdline().to_vec()));
+        o.push(BufGenItm::new(
+            "kernel",
+            mmap.as_ref()[hdr.kernel_position()..][..hdr.kernel_size() as _].to_vec(),
+        ));
+        o.push(BufGenItm::new(
+            "ramdisk",
+            mmap.as_ref()[hdr.ramdisk_position()..][..hdr.ramdisk_size() as _].to_vec(),
+        ));
 
         if let Header::V0(v0) = hdr {
             if v0.second_bootloader_size != 0 {
-                o.push(BufGenItm {
-                    pos: 0,
-                    name: "second_bootloader".to_string(),
-                    data: mmap.as_ref()[v0.second_bootloader_addr as _..]
+                o.push(BufGenItm::new(
+                    "second_bootloader",
+                    mmap.as_ref()[v0.second_bootloader_addr as _..]
                         [..v0.second_bootloader_size as _]
                         .to_vec(),
-                });
+                ));
             }
 
             match v0.versioned {
@@ -67,13 +59,12 @@ impl GenFS for AbootimgF {
                     recovery_dtbo_size,
                 } => {
                     if recovery_dtbo_size != 0 {
-                        o.push(BufGenItm {
-                            pos: 0,
-                            name: "recovery_dtbo".to_string(),
-                            data: mmap.as_ref()[recovery_dtbo_addr as _..]
+                        o.push(BufGenItm::new(
+                            "recovery_dtbo",
+                            mmap.as_ref()[recovery_dtbo_addr as _..]
                                 [..recovery_dtbo_size as _]
                                 .to_vec(),
-                        });
+                        ));
                     }
                 }
                 HeaderV0Versioned::V2 {
@@ -83,20 +74,18 @@ impl GenFS for AbootimgF {
                     dtb_size,
                 } => {
                     if recovery_dtbo_size != 0 {
-                        o.push(BufGenItm {
-                            pos: 0,
-                            name: "recovey_dtbo".to_string(),
-                            data: mmap.as_ref()[recovery_dtbo_addr as _..]
+                        o.push(BufGenItm::new(
+                            "recovey_dtbo",
+                            mmap.as_ref()[recovery_dtbo_addr as _..]
                                 [..recovery_dtbo_size as _]
                                 .to_vec(),
-                        });
+                        ));
                     }
                     if let Some(dtb_pos) = v0.dtb_position() {
-                        o.push(BufGenItm {
-                            pos: 0,
-                            name: "dtb".to_string(),
-                            data: mmap.as_ref()[dtb_pos as _..][..dtb_size as _].to_vec(),
-                        });
+                        o.push(BufGenItm::new(
+                            "dtb",
+                            mmap.as_ref()[dtb_pos as _..][..dtb_size as _].to_vec(),
+                        ));
                     }
                 }
             }

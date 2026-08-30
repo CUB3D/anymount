@@ -59,11 +59,7 @@ impl GenFS for LzoF {
         }
 
         self.idx += 1;
-        Ok(Some(Box::new(BufGenItm {
-            name: "_dec".to_string(),
-            data: out,
-            pos: 0,
-        })))
+        Ok(Some(Box::new(BufGenItm::new("_dec", out))))
     }
 
     fn name(&self) -> &str {

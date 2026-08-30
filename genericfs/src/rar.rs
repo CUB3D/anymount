@@ -67,11 +67,7 @@ impl GenFS for RarFile {
             let d = tokio::runtime::Builder::new_current_thread()
                 .build()?
                 .block_on(async move { f.read_to_end().await })?;
-            return Ok(Some(Box::new(BufGenItm {
-                name: f.name.clone(),
-                data: d,
-                pos: 0,
-            })));
+            return Ok(Some(Box::new(BufGenItm::new(f.name.clone(), d))));
         }
 
         Ok(None)
