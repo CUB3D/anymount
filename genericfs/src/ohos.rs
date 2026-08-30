@@ -154,13 +154,7 @@ impl GenFS for OhosF {
     where
         Self: Sized,
     {
-        let hdr = f.get(..2);
-
-        if hdr != Some(0x01_u16.to_le_bytes().as_slice()) {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(f.get(..2) == Some(0x01_u16.to_le_bytes().as_slice()))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

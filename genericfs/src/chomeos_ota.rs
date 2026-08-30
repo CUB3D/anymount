@@ -25,13 +25,7 @@ impl GenFS for ChromeosOTAF {
     where
         Self: Sized,
     {
-        let hdr = f.get(..4);
-
-        if hdr != Some(b"CrAU") {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(f.get(..4) == Some(b"CrAU"))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

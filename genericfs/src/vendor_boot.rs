@@ -22,13 +22,7 @@ impl GenFS for VendorBoot {
     where
         Self: Sized,
     {
-        let hdr = f.get(..8);
-
-        if hdr != Some(b"VNDRBOOT") {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(f.get(..8) == Some(b"VNDRBOOT"))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

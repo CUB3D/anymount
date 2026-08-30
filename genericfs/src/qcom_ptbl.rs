@@ -22,13 +22,7 @@ impl GenFS for Ptbl {
     where
         Self: Sized,
     {
-        let hdr = f.get(..4);
-
-        if hdr != Some(b"PTBL") {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(f.get(..4) == Some(b"PTBL"))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

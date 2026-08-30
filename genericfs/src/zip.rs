@@ -39,16 +39,7 @@ impl GenFS for ZipFile {
     where
         Self: Sized,
     {
-        let hdr = f.get(..4);
-
-        if hdr != Some(&[0x50, 0x4b, 0x03, 0x04])
-            && hdr != Some(&[0x50, 0x4b, 0x05, 0x06])
-            && hdr != Some(&[0x50, 0x4b, 0x07, 0x08])
-        {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok((f.get(..4) == Some(&[0x50, 0x4b, 0x03, 0x04])) || (f.get(..4) == Some(&[0x50, 0x4b, 0x05, 0x06])) || (f.get(..4) == Some(&[0x50, 0x4b, 0x07, 0x08])))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

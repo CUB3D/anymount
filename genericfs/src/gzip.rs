@@ -34,13 +34,7 @@ impl GenFS for GzipF {
     where
         Self: Sized,
     {
-        let hdr = f.get(..2);
-
-        if hdr != Some(&[0x1f, 0x8b]) {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(f.get(..2) == Some(&[0x1f, 0x8b]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

@@ -33,13 +33,7 @@ impl GenFS for Lz4F {
     where
         Self: Sized,
     {
-        let hdr = f.get(..4);
-
-        if hdr != Some(0x184D2204_u32.to_le_bytes().as_slice()) {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(f.get(..4) == Some(0x184D2204_u32.to_le_bytes().as_slice()))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

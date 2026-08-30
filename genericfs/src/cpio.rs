@@ -56,11 +56,7 @@ impl GenFS for CpioFile {
     where
         Self: Sized,
     {
-        let hdr = f.get(..6);
-        if hdr != Some(b"070701") && hdr != Some(b"070702") {
-            return Ok(false);
-        }
-        Ok(true)
+        Ok((f.get(..6) == Some(b"070701")) || (f.get(..6) == Some(b"070702")))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
