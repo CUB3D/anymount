@@ -5,6 +5,7 @@ use std::path::Path;
 use tracing::warn;
 
 use crate::abootimg::AbootimgF;
+use crate::ar::UnixArF;
 use crate::bzip::BzipF;
 use crate::der_cert::DerCertF;
 use crate::dtb::DtbF;
@@ -30,16 +31,16 @@ use crate::sniff_esp32::Esp32F;
 use crate::sniff_f2fs::F2fsF;
 use crate::sniff_mtk_hblr::MtkHblrF;
 use crate::sniff_shannon::ShannonF;
+use crate::tar::TarFile;
 use crate::update_app::UpdateAppF;
 use crate::upx::UpxF;
+use crate::zip::ZipFile;
 use crate::{
-    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, qcom_ptbl::Ptbl,
-    sniff_vbmeta::VbmetaF, tlv::TlvF, vendor_boot::VendorBoot,
+    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, qcom_ptbl::Ptbl, sniff_vbmeta::VbmetaF,
+    tlv::TlvF, vendor_boot::VendorBoot,
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
-use crate::tar::TarFile;
-use crate::zip::ZipFile;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -113,6 +114,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(ErofsF, true, "erofs");
     try_format!(CpioFile, true, "cpio");
     try_format!(TarFile, true, "tar");
+    try_format!(UnixArF, true, "ar");
     try_format!(LibLPf, true, "lpf");
     try_format!(SparseF, true, "sparse");
     try_format!(Lz4F, true, "lz4");

@@ -3,6 +3,7 @@ pub mod generic_fs;
 
 pub mod abootimg;
 pub mod android_sparse;
+pub mod ar;
 pub mod bzip;
 pub mod chomeos_ota;
 pub mod cpio;
