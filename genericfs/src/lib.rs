@@ -28,6 +28,7 @@ pub mod md1img;
 pub mod mtk_dbginfo;
 pub mod mx140;
 pub mod ohos;
+pub mod pbzx;
 pub mod pem_cert;
 pub mod protbuf_raw;
 pub mod qcom_ptbl;

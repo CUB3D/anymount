@@ -737,6 +737,7 @@ dependencies = [
  "memmap2",
  "openssl",
  "parse",
+ "pbzx",
  "positioned-io",
  "progression",
  "qcow2",
@@ -1178,6 +1179,17 @@ checksum = "f8ed6a7761f76e3b9f92dfb0a60a6a6477c61024b775147ff0973a02653abaf2"
 dependencies = [
  "digest 0.10.7",
  "hmac",
+]
+
+[[package]]
+name = "pbzx"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0677fd1b7fa44f524f9ba3a6f4ec7ea10b9370f83e9394bf651f55923462405d"
+dependencies = [
+ "byteorder",
+ "thiserror 2.0.20",
+ "xz2",
 ]
 
 [[package]]

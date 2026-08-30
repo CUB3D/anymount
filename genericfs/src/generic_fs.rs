@@ -21,6 +21,7 @@ use crate::mbr::MbrF;
 use crate::md1img::Md1imgF;
 use crate::mtk_dbginfo::MtkDbgF;
 use crate::ohos::OhosF;
+use crate::pbzx::PbzxF;
 use crate::pem_cert::PemCertF;
 use crate::protbuf_raw::PBufF;
 use crate::qcow2::Qcow2F;
@@ -138,6 +139,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(RarFile, false, "rar");
     try_format!(AllwinnerA10F, true, "allwinner_a10");
     try_format!(VbmetaF, true, "vbmeta");
+    try_format!(PbzxF, true, "pbzx");
 
     None
 }
