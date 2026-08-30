@@ -33,11 +33,13 @@ use crate::sniff_shannon::ShannonF;
 use crate::update_app::UpdateAppF;
 use crate::upx::UpxF;
 use crate::{
-    TarFile, ZipFile, android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, qcom_ptbl::Ptbl,
+    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, qcom_ptbl::Ptbl,
     sniff_vbmeta::VbmetaF, tlv::TlvF, vendor_boot::VendorBoot,
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::tar::TarFile;
+use crate::zip::ZipFile;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -74,7 +76,7 @@ pub trait GenFS {
     }
 }
 
-pub(crate) fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn GenFS>> {
+pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn GenFS>> {
     let fref = f.get_ref();
 
     macro_rules! try_format {
@@ -134,7 +136,7 @@ pub(crate) fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box
     None
 }
 
-pub(crate) fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenFS>> {
+pub fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenFS>> {
     if let Ok(meta) = std::fs::metadata(p)
         && meta.size() > 1024 * 1024 * 1024 * 2
     {

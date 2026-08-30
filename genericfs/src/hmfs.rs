@@ -50,7 +50,8 @@ impl GenFS for HmfsF {
         let (i, _unk1) = le_u32(i)?;
         let (_i, cnt) = le_u32(i)?;
 
-        let file_table = &f.mmap[0x80..];
+        let i = &f.mmap;
+        let (file_table, _) = take_arr::<0x80>(i)?;
         let (_i, mut entries) = take_vec(file_table, cnt as usize, read_dir)?;
 
         let mut data_offset = 0x2000;

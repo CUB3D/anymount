@@ -1,0 +1,31 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Install cargo-fuzz
+      run: cargo install cargo-fuzz
+    - name: Build
+      run: cargo build --verbose --all-features
+    - name: Run tests
+      run: cargo test --verbose --all-features
+    - name: Run clippy
+      run: cargo clippy --all --tests --all-features -- -D warnings
+    - name: Ensure benchmarks build
+      run: cargo +nightly bench --no-run --verbose
+    - name: Ensure fuzzers build
+      run: cargo +nightly-2026-03-01 fuzz build
+    - name: Check formatting
+      run: cargo fmt -- --check

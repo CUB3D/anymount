@@ -1,5 +1,5 @@
-use crate::gen_item::GenItem;
 use fuse::FileType;
+use genericfs::gen_item::GenItem;
 
 pub struct InodeState {
     pub kind: FileType,

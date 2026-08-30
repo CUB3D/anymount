@@ -1,6 +1,5 @@
 use crate::fuse::RECURSIVE_MNT;
 use crate::fuse::auto_unpack_fs::AutoUnpackFs;
-use crate::generic_fs;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -9,7 +8,7 @@ use std::time::{Duration, Instant};
 use tracing::info;
 
 pub fn fuse_mount(pth: String, src: String) {
-    let z = generic_fs::try_open(std::path::Path::new(&src), None).expect("Can't mount this");
+    let z = genericfs::generic_fs::try_open(std::path::Path::new(&src), None).expect("Can't mount this");
 
     let a = AutoUnpackFs {
         base_path: std::path::absolute(std::path::Path::new(&pth))
@@ -57,7 +56,7 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
         ));
 
         loop {
-            if let Some(gc) = generic_fs::try_open(&src, None) {
+            if let Some(gc) = genericfs::generic_fs::try_open(&src, None) {
                 let a = AutoUnpackFs {
                     base_path: pp.to_string_lossy().to_string(),
                     inode_look: Default::default(),

@@ -15,8 +15,11 @@ impl MappedFile {
             .read(true)
             .open(p)
             .expect("Input file not found");
-        let fmap = unsafe { Mmap::map(&fmap_file) }.unwrap();
+        Self::from_file(fmap_file)
+    }
 
+    pub fn from_file(fmap_file: File) -> Self {
+        let fmap = unsafe { Mmap::map(&fmap_file) }.unwrap();
         Self { fmap_file, fmap }
     }
 

@@ -33,6 +33,11 @@ impl GenFS for PBufF {
     where
         Self: Sized,
     {
+        // This lib has bugs
+        if cfg!(fuzzing) {
+            return Ok(false);
+        }
+
         let is_pbuf = decode_raw::try_parse_entries(f, ParseConfig::default()).is_some();
 
         Ok(is_pbuf)

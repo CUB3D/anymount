@@ -8,10 +8,11 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-libfuzzer-sys = "0.4"
+libfuzzer-sys = "=0.4.13"
+memfile = "=0.3.2"
 
-[dependencies.anymount]
-path = ".."
+[dependencies.genericfs]
+path = "../genericfs"
 
 [[bin]]
 name = "fuzz_target_1"

@@ -4,38 +4,18 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-zip = "=8.5.1"
+genericfs = { path = "./genericfs"}
 time = "=0.1.45" # old because fuse
-tar = {  path = "./vendor/tar-rs" }
-lz4_flex = "0.14.0"
-android-sparse = "=0.6.0"
 clap = { version = "=4.6.6", features = ["derive"] }
 anyhow = "=1.0.104"
-parse = { git = "https://github.com/CUB3D/parse-rs", rev = "5f2c7befbc473706dbd3a229d356b0a5be504b41", features = ["alloc"] }
 tracing-subscriber = { version = "=0.3.23", features = ["env-filter"] }
 tracing = "=0.1.44"
-memmap2 = "=0.9.11"
 progression = "=0.1.15"
-flate2 = "=1.1.10"
-cpio = "=0.4.1"
-bzip2 = { version = "=0.6.1" }
-decode_raw = "=0.2.0"
-abootimg-oxide = "=0.5.2"
-openssl = { version = "=0.10.81", features = ["vendored"] }
-ext4-view = "=0.9.3"
-dtb = "=0.2.0"
-qcow2 = { git = "https://github.com/CUB3D/qcow2-rs" }
-positioned-io = "=0.3.5"
-mbrman = "=0.6.1"
-rust-lzo = "=0.6.2"
-lzma-rust2 = "=0.20.0"
-serde = "=1.0.229"
-serde_json = "=1.0.151"
-tokio = { version = "=1.53.1", features = ["rt"] }
-rar-stream = { path = "./vendor/rar-stream", features = ["async", "crypto"] }
+#serde_json = "=1.0.151"
+#tokio = { version = "=1.53.1", features = ["rt"] }
 
-iced = { version = "=0.14.0", default-features = false, features = ["x11", "wayland", "wgpu", "tiny-skia", "smol"]}
-rfd = "=0.17.2"
+#iced = { version = "=0.14.0", default-features = false, features = ["x11", "wayland", "wgpu", "tiny-skia", "smol"]}
+#rfd = { version = "=0.17.2", }
 
 [target.'cfg(target_os="linux")'.dependencies]
 fuse = "=0.3.1"

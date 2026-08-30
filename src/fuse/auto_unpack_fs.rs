@@ -1,6 +1,5 @@
 use crate::fuse::inode_state::InodeState;
 use crate::fuse::{VERBOSE_LOG, VERBOSE_LOG_READ};
-use crate::generic_fs::GenFS;
 use fuse::{
     FileAttr, FileType, Filesystem, ReplyAttr, ReplyData, ReplyDirectory, ReplyEmpty, ReplyEntry,
     ReplyOpen, ReplyXattr, Request,
@@ -16,7 +15,7 @@ use tracing::{info, warn};
 
 pub struct AutoUnpackFs {
     pub base_path: String,
-    pub cont: Box<dyn GenFS>,
+    pub cont: Box<dyn genericfs::generic_fs::GenFS>,
     pub id: u64,
     pub inode_look: BTreeMap<(u64, String), InodeState>,
     pub anti_hang: Instant,
