@@ -31,6 +31,7 @@ use crate::sniff_allwinner::AllwinnerA10F;
 use crate::sniff_dtbo::DtboF;
 use crate::sniff_esp32::Esp32F;
 use crate::sniff_f2fs::F2fsF;
+use crate::sniff_fbpt::FbptF;
 use crate::sniff_mtk_hblr::MtkHblrF;
 use crate::sniff_shannon::ShannonF;
 use crate::tar::TarFile;
@@ -45,6 +46,7 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::sniff_dtbh::DtbhF;
 use crate::sniff_yaa::YaaF;
 
 pub trait GenFS {
@@ -146,6 +148,8 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(PbzxF, true, "pbzx");
     try_format!(XarF, true, "xar");
     try_format!(YaaF, true, "yaa");
+    try_format!(FbptF, true, "fbpt");
+    try_format!(DtbhF, true, "dtbh");
 
     None
 }

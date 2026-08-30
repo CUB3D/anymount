@@ -39,6 +39,7 @@ pub mod sniff_allwinner;
 pub mod sniff_dtbo;
 pub mod sniff_esp32;
 pub mod sniff_f2fs;
+pub mod sniff_fbpt;
 pub mod sniff_mtk_hblr;
 pub mod sniff_shannon;
 pub mod sniff_vbmeta;
@@ -52,6 +53,7 @@ pub mod xar;
 pub mod xz;
 pub mod zip;
 pub mod sniff_yaa;
+pub mod sniff_dtbh;
 // hsp: no libs
 // UBI-flash?
 // EXE resources
