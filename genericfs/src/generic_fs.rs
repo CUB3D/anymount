@@ -35,6 +35,7 @@ use crate::sniff_shannon::ShannonF;
 use crate::tar::TarFile;
 use crate::update_app::UpdateAppF;
 use crate::upx::UpxF;
+use crate::xar::XarF;
 use crate::xz::XzF;
 use crate::zip::ZipFile;
 use crate::{
@@ -140,6 +141,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(AllwinnerA10F, true, "allwinner_a10");
     try_format!(VbmetaF, true, "vbmeta");
     try_format!(PbzxF, true, "pbzx");
+    try_format!(XarF, true, "xar");
 
     None
 }

@@ -47,6 +47,7 @@ pub mod update_app;
 pub mod upx;
 pub mod vendor_boot;
 pub mod wip_garmin;
+pub mod xar;
 pub mod xz;
 pub mod zip;
 // hsp: no libs
