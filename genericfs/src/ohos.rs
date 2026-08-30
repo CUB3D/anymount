@@ -24,7 +24,9 @@ impl GenFS for OhosF {
     where
         Self: Sized,
     {
-        return Err(anyhow::anyhow!("ohos extract not supported yet"));
+        if cfg!(fuzzing) {
+            return Err(anyhow::anyhow!("ohos extract not supported yet"));
+        }
 
         let i = f.mmap;
 

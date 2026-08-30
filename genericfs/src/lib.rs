@@ -46,7 +46,6 @@ pub mod wip_garmin;
 pub mod zip;
 // hsp: no libs
 // UBI-flash?
-// RAR files
 // EXE resources
 // yaffs2
 
