@@ -34,6 +34,7 @@ use crate::sniff_shannon::ShannonF;
 use crate::tar::TarFile;
 use crate::update_app::UpdateAppF;
 use crate::upx::UpxF;
+use crate::xz::XzF;
 use crate::zip::ZipFile;
 use crate::{
     android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, qcom_ptbl::Ptbl, sniff_vbmeta::VbmetaF,
@@ -131,6 +132,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(MtkDbgF, true, "mtk_dbg");
     try_format!(Esp32F, true, "esp32_fw");
     try_format!(UpdateAppF, true, "update_app");
+    try_format!(XzF, true, "xz");
     try_format!(RarFile, false, "rar");
     try_format!(AllwinnerA10F, true, "allwinner_a10");
     try_format!(VbmetaF, true, "vbmeta");
