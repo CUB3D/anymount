@@ -1,4 +1,4 @@
-use std::io::Read;
+//! LZFSE decompression
 
 use memmap2::Mmap;
 
@@ -9,22 +9,22 @@ use crate::{
     generic_fs::GenFS,
 };
 
-pub struct BzipF {
-    pub mmap: Mmap,
+pub struct LzfseF {
+    pub f: Mmap,
     pub idx: usize,
 }
 
-impl GenFSProps for BzipF {
-    const FORMAT_NAME: &'static str = "bzip2";
+impl GenFSProps for LzfseF {
+    const FORMAT_NAME: &'static str = "lzfse";
 }
 
-impl GenFS for BzipF {
+impl GenFS for LzfseF {
     fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
         Ok(Self {
-            mmap: f.owned_map(),
+            f: f.owned_map(),
             idx: 0,
         })
     }
@@ -33,7 +33,7 @@ impl GenFS for BzipF {
     where
         Self: Sized,
     {
-        Ok(f.get(..2) == Some(b"BZ"))
+        Ok(f.get(..3) == Some(b"bvx"))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
@@ -41,9 +41,8 @@ impl GenFS for BzipF {
             return Ok(None);
         }
 
-        let mut f = bzip2::read::BzDecoder::new(self.mmap.as_ref());
         let mut d = Vec::new();
-        f.read_to_end(&mut d)?;
+        lzfse_rust::decode_bytes(&self.f[..], &mut d)?;
         self.idx += 1;
         Ok(Some(Box::new(BufGenItm {
             name: "_dec".to_string(),

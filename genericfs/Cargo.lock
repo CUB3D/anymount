@@ -703,6 +703,7 @@ dependencies = [
  "ext4-view",
  "flate2",
  "lz4_flex",
+ "lzfse_rust",
  "lzma-rust2 0.20.0",
  "mbrman",
  "memmap2",
@@ -939,6 +940,12 @@ checksum = "ecbdfe44b1bd960b68170b417450a628c43f7cf56bb3c5317e61cb230ee7f226"
 dependencies = [
  "twox-hash",
 ]
+
+[[package]]
+name = "lzfse_rust"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5edeac3ec657925dececc672bdd58fa2212291886ddcb3e08aa46924c78340c6"
 
 [[package]]
 name = "lzma-rust2"

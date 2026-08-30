@@ -19,6 +19,7 @@ pub mod hmfs;
 pub mod liblp;
 pub mod linux_zimg;
 pub mod lz4;
+pub mod lzfse;
 pub mod lzma;
 pub mod mapped_file;
 pub mod mbr;
