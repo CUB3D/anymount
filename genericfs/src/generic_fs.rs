@@ -44,6 +44,7 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::sniff_yaa::YaaF;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -142,6 +143,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(VbmetaF, true, "vbmeta");
     try_format!(PbzxF, true, "pbzx");
     try_format!(XarF, true, "xar");
+    try_format!(YaaF, true, "yaa");
 
     None
 }

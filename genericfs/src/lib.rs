@@ -50,6 +50,7 @@ pub mod wip_garmin;
 pub mod xar;
 pub mod xz;
 pub mod zip;
+pub mod sniff_yaa;
 // hsp: no libs
 // UBI-flash?
 // EXE resources
