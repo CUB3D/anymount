@@ -26,6 +26,7 @@ use crate::pem_cert::PemCertF;
 use crate::protbuf_raw::PBufF;
 use crate::qcow2::Qcow2F;
 use crate::rar::RarFile;
+use crate::rpm::RpmF;
 use crate::sniff_allwinner::AllwinnerA10F;
 use crate::sniff_dtbo::DtboF;
 use crate::sniff_esp32::Esp32F;
@@ -139,6 +140,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(UpdateAppF, true, "update_app");
     try_format!(XzF, true, "xz");
     try_format!(RarFile, false, "rar");
+    try_format!(RpmF, true, "rpm");
     try_format!(AllwinnerA10F, true, "allwinner_a10");
     try_format!(VbmetaF, true, "vbmeta");
     try_format!(PbzxF, true, "pbzx");

@@ -34,6 +34,7 @@ pub mod protbuf_raw;
 pub mod qcom_ptbl;
 pub mod qcow2;
 pub mod rar;
+pub mod rpm;
 pub mod sniff_allwinner;
 pub mod sniff_dtbo;
 pub mod sniff_esp32;
