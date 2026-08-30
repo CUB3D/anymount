@@ -37,7 +37,7 @@ use crate::upx::UpxF;
 use crate::xz::XzF;
 use crate::zip::ZipFile;
 use crate::{
-    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, lzfse::LzfseF, qcom_ptbl::Ptbl,
+    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, lzfse::LzfseF, lzo::LzoF, qcom_ptbl::Ptbl,
     sniff_vbmeta::VbmetaF, tlv::TlvF, vendor_boot::VendorBoot,
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
@@ -120,6 +120,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(SparseF, true, "sparse");
     try_format!(Lz4F, true, "lz4");
     try_format!(LzfseF, true, "lzfse");
+    try_format!(LzoF, true, "lzo");
     try_format!(VendorBoot, true, "vendorboot");
     try_format!(Ptbl, true, "lpf");
     try_format!(TlvF, false, "tlvf");
