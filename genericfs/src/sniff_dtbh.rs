@@ -1,7 +1,6 @@
 //! Samsung DTBH sniff
 
 use memmap2::Mmap;
-use parse::le_u32;
 
 use crate::file_ref::FileRef;
 use crate::generic_fs_props::GenFSProps;

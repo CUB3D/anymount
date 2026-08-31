@@ -39,6 +39,7 @@ lzfse_rust = "=0.2.1"
 lzokay = "=2.0.1"
 pbzx = "=0.3.1"
 apple-xar = "=0.20.0"
+image4 = "=0.8.2"
 #TODO: no lzma due to apple XAR
 rpm = { version = "=0.27.1", default-features = false, features = ["payload", "gzip-compression", "zstd-compression", "bzip2-compression"] }
 

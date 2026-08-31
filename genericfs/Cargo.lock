@@ -684,7 +684,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7c1832837b905bbfb5101e07cc24c8deddf52f93225eee6ead5f4d63d53ddcb"
 dependencies = [
  "const-oid 0.9.6",
+ "der_derive",
  "zeroize",
+]
+
+[[package]]
+name = "der_derive"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8034092389675178f570469e6c3b0465d3d30b4505c294a6550db47f3c17ad18"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -933,6 +945,7 @@ dependencies = [
  "dtb",
  "ext4-view",
  "flate2",
+ "image4",
  "lz4_flex",
  "lzfse_rust",
  "lzma-rust2 0.20.1",
@@ -1273,6 +1286,17 @@ checksum = "cb68373c0d6620ef8105e855e7745e18b0d00d3bdb07fb532e434244cdb9a714"
 dependencies = [
  "icu_normalizer",
  "icu_properties",
+]
+
+[[package]]
+name = "image4"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc4fb2b78da1ba6b3c137822a3edba67136b3d24690f7505c85150dd234ede1d"
+dependencies = [
+ "der",
+ "serde",
+ "signature",
 ]
 
 [[package]]

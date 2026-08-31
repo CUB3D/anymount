@@ -14,6 +14,7 @@ use crate::ext4::Ext4F;
 use crate::fbpack::FbpackF;
 use crate::file_ref::FileRef;
 use crate::hmfs::HmfsF;
+use crate::img4::Img4F;
 use crate::linux_zimg::LinuzZImgF;
 use crate::lzma::LzmaF;
 use crate::mapped_file::MappedFile;
@@ -150,6 +151,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(YaaF, true, "yaa");
     try_format!(FbptF, true, "fbpt");
     try_format!(DtbhF, true, "dtbh");
+    try_format!(Img4F, true, "img4");
 
     None
 }

@@ -16,6 +16,7 @@ pub mod file_ref;
 mod generic_fs_props;
 pub mod gzip;
 pub mod hmfs;
+pub mod img4;
 pub mod liblp;
 pub mod linux_zimg;
 pub mod lz4;
