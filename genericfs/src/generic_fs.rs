@@ -47,8 +47,12 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::sniff_bootldr::BootldrF;
 use crate::sniff_dtbh::DtbhF;
+use crate::sniff_ftab::FtabF;
+use crate::sniff_uimage::UbootUImgF;
 use crate::sniff_yaa::YaaF;
+use crate::sniff_zowie::ZowieboxF;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -152,6 +156,10 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(FbptF, true, "fbpt");
     try_format!(DtbhF, true, "dtbh");
     try_format!(Img4F, true, "img4");
+    try_format!(ZowieboxF, true, "zowiebox");
+    try_format!(FtabF, true, "ftab");
+    try_format!(UbootUImgF, true, "uimage");
+    try_format!(BootldrF, true, "bootldr");
 
     None
 }

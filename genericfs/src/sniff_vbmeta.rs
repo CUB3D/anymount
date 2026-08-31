@@ -24,7 +24,7 @@ impl GenFS for VbmetaF {
     where
         Self: Sized,
     {
-        Ok(f.get(..4) == Some(b"AVB0".as_slice()))
+        Ok(f.get(..4) == Some(b"AVB0"))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

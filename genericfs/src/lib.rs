@@ -55,6 +55,10 @@ pub mod xz;
 pub mod zip;
 pub mod sniff_yaa;
 pub mod sniff_dtbh;
+pub mod sniff_zowie;
+pub mod sniff_ftab;
+pub mod sniff_uimage;
+pub mod sniff_bootldr;
 // hsp: no libs
 // UBI-flash?
 // EXE resources

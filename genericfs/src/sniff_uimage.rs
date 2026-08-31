@@ -1,4 +1,4 @@
-//! Apple Archive
+//! u-boot uImage
 
 use memmap2::Mmap;
 
@@ -6,13 +6,13 @@ use crate::file_ref::FileRef;
 use crate::generic_fs_props::GenFSProps;
 use crate::{gen_item::GenItem, generic_fs::GenFS};
 
-pub struct YaaF {}
+pub struct UbootUImgF {}
 
-impl GenFSProps for YaaF {
-    const FORMAT_NAME: &'static str = "apple_archive";
+impl GenFSProps for UbootUImgF {
+    const FORMAT_NAME: &'static str = "uimage";
 }
 
-impl GenFS for YaaF {
+impl GenFS for UbootUImgF {
     fn try_open_internal(_f: &FileRef) -> anyhow::Result<Self>
     where
         Self: Sized,
@@ -24,7 +24,7 @@ impl GenFS for YaaF {
     where
         Self: Sized,
     {
-        Ok((f.get(..4) == Some(b"YAA1")) || f.get(..4) == Some(b"AA01"))
+        Ok(f.get(..4) == Some(&[0x27, 0x05, 0x19, 0x56]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
