@@ -47,6 +47,7 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::sniff_7z::SevenZipF;
 use crate::sniff_bootldr::BootldrF;
 use crate::sniff_dtbh::DtbhF;
 use crate::sniff_ftab::FtabF;
@@ -160,6 +161,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     try_format!(FtabF, true, "ftab");
     try_format!(UbootUImgF, true, "uimage");
     try_format!(BootldrF, true, "bootldr");
+    try_format!(SevenZipF, true, "7z");
 
     None
 }
