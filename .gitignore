@@ -3,3 +3,5 @@ run
 .idea
 _ext
 genericfs/target
+test.bin
+temp.bin

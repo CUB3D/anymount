@@ -101,7 +101,7 @@ checksum = "9c76c5759b0af9dea95a769ff5fe140cec5afb5fa65019817f3731b3232afe44"
 dependencies = [
  "byteorder",
  "clap 2.34.0",
- "crc 1.8.1",
+ "crc",
 ]
 
 [[package]]
@@ -229,6 +229,17 @@ name = "ar"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d67af77d68a931ecd5cbd8a3b5987d63a1d1d1278f7f6a60ae33db485cdebb69"
+
+[[package]]
+name = "arcbox-ext4"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9dce000de67c1a27347fed86e9ce76199463fbb5a3d7f13cb0f3d1c16b6dae3"
+dependencies = [
+ "tar 0.4.46",
+ "thiserror 2.0.20",
+ "uuid",
+]
 
 [[package]]
 name = "array-init"
@@ -1083,21 +1094,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "crc"
-version = "3.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eb8a2a1cd12ab0d987a5d5e825195d372001a4094a0376319d5a0ad71c1ba0d"
-dependencies = [
- "crc-catalog",
-]
-
-[[package]]
-name = "crc-catalog"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "217698eaf96b4a3f0bc4f3662aaa55bdf913cd54d7204591faa790070c6d0853"
-
-[[package]]
 name = "crc32fast"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1418,15 +1414,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ext4-view"
-version = "0.9.3"
-source = "git+https://github.com/nicholasbishop/ext4-view-rs?rev=c8d10a87395ff2c0312902eab567335f12a0de1b#c8d10a87395ff2c0312902eab567335f12a0de1b"
-dependencies = [
- "bitflags 2.13.1",
- "crc 3.4.0",
-]
-
-[[package]]
 name = "fastrand"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1702,12 +1689,12 @@ dependencies = [
  "anyhow",
  "apple-xar",
  "ar",
+ "arcbox-ext4",
  "bzip2 0.6.1",
  "clap 4.6.6",
  "cpio",
  "decode_raw",
  "dtb",
- "ext4-view",
  "flate2",
  "image4",
  "lz4_flex",
@@ -1727,7 +1714,7 @@ dependencies = [
  "rust-lzo",
  "serde",
  "serde_json",
- "tar",
+ "tar 0.4.41",
  "time 0.1.45",
  "tokio",
  "tracing",
@@ -4898,6 +4885,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tar"
+version = "0.4.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f6221d9a6003c78398e3b239969f352578258df48c8eb051caadae0015bc840"
+dependencies = [
+ "filetime",
+ "libc",
+ "xattr",
+]
+
+[[package]]
 name = "termcolor"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5357,6 +5355,17 @@ name = "utf8parse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
+
+[[package]]
+name = "uuid"
+version = "1.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5772d71c9be8a8a6ac2117d949c5b224c1b72241bb611d9a3012edcf8af7812"
+dependencies = [
+ "getrandom 0.4.3",
+ "js-sys",
+ "wasm-bindgen",
+]
 
 [[package]]
 name = "valuable"

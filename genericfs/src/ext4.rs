@@ -1,10 +1,11 @@
 //! Ext4
 
-use anyhow::Context;
-use ext4_view::{Ext4, Ext4Read};
+use arcbox_ext4::Reader;
 use memmap2::Mmap;
-use std::error::Error;
 use parse::{le_u16, take_arr};
+use std::os::unix::io::AsRawFd;
+use std::path::PathBuf;
+
 use crate::file_ref::FileRef;
 use crate::generic_fs_props::GenFSProps;
 use crate::{
@@ -21,71 +22,47 @@ impl GenFSProps for Ext4F {
     const FORMAT_NAME: &'static str = "ext4";
 }
 
-struct MmapWrapper {
-    slc: Mmap,
-}
-impl Ext4Read for MmapWrapper {
-    fn read(
-        &mut self,
-        start_byte: u64,
-        dst: &mut [u8],
-    ) -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
-        dst.copy_from_slice(
-            self.slc
-                .get(start_byte as usize..)
-                .context("Start oob")?
-                .get(..dst.len())
-                .context("end oob")?,
-        );
-        Ok(())
-    }
-}
-
 impl GenFS for Ext4F {
     fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        let mmap = f.owned_map();
 
-        let ext = Ext4::load(Box::new(MmapWrapper { slc: mmap }))?;
-
-        let mut entries = Vec::new();
-        let mut seen = Vec::new();
-        for c in ext.read_dir("/")? {
-            let c = c?;
-            entries.push(c);
-        }
+        let file = f.owned_file();
+        let fd = file.as_raw_fd();
+        let mut r = Reader::new(&PathBuf::from(format!("/proc/self/fd/{fd}")))?;
 
         let mut o = Vec::new();
+        let mut seen = Vec::new();
 
-        while let Some(entry) = entries.pop() {
-            if seen.contains(&entry.path()) {
+        let mut ents = r
+            .list_dir("/")?
+            .into_iter()
+            .map(|x| format!("/{x}"))
+            .collect::<Vec<_>>();
+
+        while let Some(e) = ents.pop() {
+            if seen.contains(&e) {
                 continue;
             }
-            seen.push(entry.path());
+            seen.push(e.clone());
 
-            let ft = entry.file_type()?;
+            let (_, stats) = r.stat_no_follow(&e)?;
 
-            if ft.is_symlink()
-                || ft.is_socket()
-                || ft.is_fifo()
-                || ft.is_char_dev()
-                || ft.is_block_dev()
-            {
-                continue;
-            }
+            let name = e.rsplit('/').next().unwrap_or(&e).to_string();
 
-            if ft.is_dir() {
-                for c in ext.read_dir(&entry.path())? {
-                    let c = c?;
-                    entries.push(c);
+            if stats.is_link() {
+                o.push(BufGenItm::new_empty(format!("{}.symlink", name)));
+            } else {
+                if stats.is_dir() {
+                    ents.extend(r
+                        .list_dir(&e)?
+                        .into_iter()
+                        .map(|n| format!("{e}/{n}")));
+                } else if stats.is_reg() {
+                    let data = r.read_file(&e, 0, None)?;
+                    o.push(BufGenItm::new(name, data));
                 }
-            }
-
-            if ft.is_regular_file() {
-                let data = ext.read(&entry.path())?;
-                o.push(BufGenItm::new(entry.file_name().as_str()?, data));
             }
         }
 
