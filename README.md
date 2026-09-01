@@ -12,7 +12,7 @@ rpm-ostree install fuse-devel openssl-devel perl-FindBin perl-IPC-Cmd perl-File-
 ```
 Installing:
 ```shell
-cargo install --path=.
+cargo +stable install --locked --git https://github.com/CUB3D/anymount anymount
 ```
 
 Usage:

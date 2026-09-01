@@ -100,8 +100,8 @@ fn main() -> anyhow::Result<()> {
                 return Ok(());
             }
 
-            if let Some(_f) = genericfs::generic_fs::try_open(&pth, None) {
-                // gui::run_gui(f, &pth);
+            if let Some(f) = genericfs::generic_fs::try_open(&pth, None) {
+                gui::run_gui(f, &pth);
             } else {
                 error!("Failed to open file");
             }
