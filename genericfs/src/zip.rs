@@ -14,9 +14,19 @@ use crate::{
     generic_fs::GenFS,
 };
 
+#[derive(Copy, Clone, Debug)]
+pub enum ZipEntry {
+    File(usize),
+    Extra(usize),
+    Comment(usize),
+    Encrypted(usize),
+    Symlink(usize),
+}
+
 #[derive(Debug)]
 pub struct ZipFile {
     pub zip: ::zip::ZipArchive<BufReader<File>>,
+    pub entries: Vec<ZipEntry>,
     pub idx: usize,
 }
 
@@ -31,54 +41,89 @@ impl GenFS for ZipFile {
     {
         let f = f.owned_file();
         let c = Config::default();
-        let z = zip::ZipArchive::with_config(c, BufReader::new(f))?;
-        Ok(Self { zip: z, idx: 0 })
+        let mut z = zip::ZipArchive::with_config(c, BufReader::new(f))?;
+
+        let mut entries = Vec::new();
+        let mut idx = 0;
+        while let Ok(f) = z.by_index(idx) {
+            if f.encrypted() {
+                entries.push(ZipEntry::Encrypted(idx));
+            } else if f.is_symlink() {
+                entries.push(ZipEntry::Symlink(idx));
+            } else {
+                // Skip non-encrypted dirs
+                if !f.is_dir() {
+                    idx += 1;
+                    continue;
+                }
+
+                entries.push(ZipEntry::File(idx));
+
+                if !f.comment().is_empty() {
+                    entries.push(ZipEntry::Comment(idx));
+                }
+
+                if f.extra_data().is_some() {
+                    entries.push(ZipEntry::Extra(idx));
+                }
+            }
+        }
+
+        Ok(Self {
+            zip: z,
+            idx: 0,
+            entries,
+        })
     }
 
     fn sniff(f: &Mmap) -> anyhow::Result<bool>
     where
         Self: Sized,
     {
-        Ok((f.get(..4) == Some(&[0x50, 0x4b, 0x03, 0x04])) || (f.get(..4) == Some(&[0x50, 0x4b, 0x05, 0x06])) || (f.get(..4) == Some(&[0x50, 0x4b, 0x07, 0x08])))
+        Ok((f.get(..4) == Some(&[0x50, 0x4b, 0x03, 0x04]))
+            || (f.get(..4) == Some(&[0x50, 0x4b, 0x05, 0x06]))
+            || (f.get(..4) == Some(&[0x50, 0x4b, 0x07, 0x08])))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
-        let mut f = {
-            let mut f = self.zip.by_index(self.idx)?;
+        if let Some(&ent) = self.entries.get(self.idx) {
+            self.idx += 1;
 
-            // Find next non dir
-            loop {
-                // Skip encrypted
-                if f.encrypted() {
+            match ent {
+                ZipEntry::Encrypted(id) => {
+                    let f = self.zip.by_index(id)?;
                     warn!("File: {} is encrypted, skipping", f.name());
-                } else if f.is_symlink() {
-                    warn!("File: {} is symlink, skipping", f.name());
-                } else {
-                    // Skip non-encrypted dirs
-                    if !f.is_dir() {
-                        break;
-                    }
+                    return Ok(Some(Box::new(BufGenItm::new_empty(format!("{}.encrypted", f.name())))));
                 }
-                self.idx += 1;
-                drop(f);
-                f = self.zip.by_index(self.idx)?
+                ZipEntry::Symlink(id) => {
+                    let f = self.zip.by_index(id)?;
+                    warn!("File: {} is symlink, skipping", f.name());
+                    return Ok(Some(Box::new(BufGenItm::new_empty(format!("{}.symlink", f.name())))));
+                }
+                ZipEntry::File(id) => {
+                    let mut f = self.zip.by_index(id)?;
+                    let mut d = Vec::with_capacity(f.size() as usize);
+                    f.read_to_end(&mut d)?;
+                    return Ok(Some(Box::new(BufGenItm::new(f.name(), d))));
+                }
+                ZipEntry::Extra(id) => {
+                    let f = self.zip.by_index(id)?;
+                    return Ok(Some(Box::new(BufGenItm::new(
+                        format!("{}.extra_data", f.name()),
+                        f.extra_data().unwrap().to_vec(),
+                    ))));
+                }
+                ZipEntry::Comment(id) => {
+                    let f = self.zip.by_index(id)?;
+                    return Ok(Some(Box::new(BufGenItm::new(
+                        format!("{}.comment", f.name()),
+                        f.comment().as_bytes().to_vec(),
+                    ))));
+                }
             }
-
-            f
-        };
-
-        if let Some(extra) = f.extra_data() {
-            warn!("File: {} has extra data ({} bytes)", f.name(), extra.len());
+        } else {
+            Ok(None)
         }
-
-        if !f.comment().is_empty() {
-            warn!("File: {} has comment", f.name());
-        }
-
-        self.idx += 1;
-        let mut d = Vec::with_capacity(f.size() as usize);
-        f.read_to_end(&mut d)?;
-        Ok(Some(Box::new(BufGenItm::new(f.name(), d))))
     }
 
     fn name(&self) -> &str {

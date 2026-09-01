@@ -61,8 +61,7 @@ impl GenFS for AbootimgF {
                     if recovery_dtbo_size != 0 {
                         o.push(BufGenItm::new(
                             "recovery_dtbo",
-                            mmap.as_ref()[recovery_dtbo_addr as _..]
-                                [..recovery_dtbo_size as _]
+                            mmap.as_ref()[recovery_dtbo_addr as _..][..recovery_dtbo_size as _]
                                 .to_vec(),
                         ));
                     }
@@ -76,8 +75,7 @@ impl GenFS for AbootimgF {
                     if recovery_dtbo_size != 0 {
                         o.push(BufGenItm::new(
                             "recovey_dtbo",
-                            mmap.as_ref()[recovery_dtbo_addr as _..]
-                                [..recovery_dtbo_size as _]
+                            mmap.as_ref()[recovery_dtbo_addr as _..][..recovery_dtbo_size as _]
                                 .to_vec(),
                         ));
                     }

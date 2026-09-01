@@ -52,9 +52,7 @@ impl GenFS for LzoF {
                     out.reserve(out.len());
                     out.clear();
                 }
-                Err(e) => {
-                    return Err(anyhow::anyhow!("Decompress failed: {e}"))
-                },
+                Err(e) => return Err(anyhow::anyhow!("Decompress failed: {e}")),
             }
         }
 

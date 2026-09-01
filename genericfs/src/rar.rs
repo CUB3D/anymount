@@ -18,6 +18,7 @@ pub struct RarFile {
 
 impl GenFSProps for RarFile {
     const FORMAT_NAME: &'static str = "rar";
+    const LOW_CONFIDENCE_SNIFF: bool = true;
 }
 
 impl GenFS for RarFile {

@@ -99,6 +99,7 @@ impl GuiRoot {
             Message::View(idx) => {
                 let f = cur.items[idx].clone();
                 std::fs::write("./temp.bin", &f.data).unwrap();
+                #[expect(clippy::zombie_processes)]
                 std::process::Command::new("kwrite")
                     .arg("./temp.bin")
                     .spawn()
@@ -163,4 +164,3 @@ pub fn run_gui(mut fs: Box<dyn GenFS>, pth: &Path) {
         .centered()
         .run();
 }
-

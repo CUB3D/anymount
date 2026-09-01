@@ -50,7 +50,8 @@ impl GenFS for XarF {
 
             if matches!(file.file_type, FileType::File) {
                 let mut d = Vec::new();
-                self.reader.write_file_data_decoded_from_file(file, &mut d)?;
+                self.reader
+                    .write_file_data_decoded_from_file(file, &mut d)?;
                 return Ok(Some(Box::new(BufGenItm::new(name.clone(), d))));
             }
         }

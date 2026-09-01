@@ -8,7 +8,8 @@ use std::time::{Duration, Instant};
 use tracing::info;
 
 pub fn fuse_mount(pth: String, src: String) {
-    let z = genericfs::generic_fs::try_open(std::path::Path::new(&src), None).expect("Can't mount this");
+    let z = genericfs::generic_fs::try_open(std::path::Path::new(&src), None)
+        .expect("Can't mount this");
 
     let a = AutoUnpackFs {
         base_path: std::path::absolute(std::path::Path::new(&pth))

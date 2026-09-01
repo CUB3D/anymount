@@ -4,7 +4,7 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use std::fmt::Debug;
 use std::fs::OpenOptions;
-use std::io::{Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
@@ -18,6 +18,7 @@ struct Args {
 
 #[derive(Debug, Parser)]
 struct ExtCmd {
+    /// The file to open
     #[clap(required = true)]
     input_path: String,
 
@@ -33,26 +34,41 @@ struct ExtCmd {
 
 #[derive(Debug, Subcommand)]
 enum Cmd {
+
+    /// Mount the given file with FUSE
     #[cfg(target_os = "linux")]
     Mnt {
+        /// The file to open
         #[clap(required = true)]
         pth: String,
 
         #[clap(required = true)]
         src: String,
     },
+
+    /// Extract the given file
     Ext(ExtCmd),
+
+    /// List the contents of the given archive
     Ls {
+        /// The file to open
         #[clap(required = true)]
         pth: String,
 
         #[clap(required = false, long)]
         fmt: Option<String>,
     },
+
+    /// Open the GUI to explore an archive
     Browse {
+        /// The file to open
         #[clap(required = true)]
         pth: String,
     },
+
+
+    /// List the supported formats
+    Formats,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -75,9 +91,14 @@ fn main() -> anyhow::Result<()> {
     });
 
     match args.cmd {
+        Cmd::Formats => {
+            for f in genericfs::generic_fs::FORMATS {
+                 println!("- {}", f.format_name());
+            }
+        }
         #[cfg(target_os = "linux")]
         Cmd::Mnt { pth, src } => {
-            use std::io::{Read};
+            use std::io::Read;
             std::thread::spawn(move || {
                 fuse::fuse_mnt::fuse_mount(pth, src);
             });

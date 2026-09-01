@@ -1,5 +1,6 @@
 use crate::generic_fs_props::GenFSProps;
 use memmap2::Mmap;
+use std::marker::PhantomData;
 use std::os::unix::fs::MetadataExt;
 use std::path::Path;
 use tracing::warn;
@@ -28,13 +29,20 @@ use crate::protbuf_raw::PBufF;
 use crate::qcow2::Qcow2F;
 use crate::rar::RarFile;
 use crate::rpm::RpmF;
+use crate::sniff_7z::SevenZipF;
 use crate::sniff_allwinner::AllwinnerA10F;
+use crate::sniff_bootldr::BootldrF;
+use crate::sniff_dtbh::DtbhF;
 use crate::sniff_dtbo::DtboF;
 use crate::sniff_esp32::Esp32F;
 use crate::sniff_f2fs::F2fsF;
 use crate::sniff_fbpt::FbptF;
+use crate::sniff_ftab::FtabF;
 use crate::sniff_mtk_hblr::MtkHblrF;
 use crate::sniff_shannon::ShannonF;
+use crate::sniff_uimage::UbootUImgF;
+use crate::sniff_yaa::YaaF;
+use crate::sniff_zowie::ZowieboxF;
 use crate::tar::TarFile;
 use crate::update_app::UpdateAppF;
 use crate::upx::UpxF;
@@ -42,18 +50,11 @@ use crate::xar::XarF;
 use crate::xz::XzF;
 use crate::zip::ZipFile;
 use crate::{
-    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, lzfse::LzfseF, lzo::LzoF, qcom_ptbl::Ptbl,
-    sniff_vbmeta::VbmetaF, tlv::TlvF, vendor_boot::VendorBoot,
+    android_sparse::SparseF, gen_item::GenItem, lz4::Lz4F, lzfse::LzfseF, lzo::LzoF,
+    qcom_ptbl::Ptbl, sniff_vbmeta::VbmetaF, tlv::TlvF, vendor_boot::VendorBoot,
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
-use crate::sniff_7z::SevenZipF;
-use crate::sniff_bootldr::BootldrF;
-use crate::sniff_dtbh::DtbhF;
-use crate::sniff_ftab::FtabF;
-use crate::sniff_uimage::UbootUImgF;
-use crate::sniff_yaa::YaaF;
-use crate::sniff_zowie::ZowieboxF;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -90,78 +91,111 @@ pub trait GenFS {
     }
 }
 
+pub trait GenericFSHelper {
+    fn try_open(&self, f: &FileRef) -> anyhow::Result<Option<Box<dyn GenFS>>>;
+
+    fn enabled_by_default(&self) -> bool;
+
+    fn format_name(&self) -> &'static str;
+}
+
+
+/// Helper for working with implementors of GenFS, unlike genfs this can be instantiated without a data source so can be stored in a global instance
+struct GenericFSHelperImpl<T>(PhantomData<*mut T>);
+
+impl<T: GenFS + GenFSProps + 'static> GenericFSHelper for GenericFSHelperImpl<T> {
+    fn try_open(&self, f: &FileRef) -> anyhow::Result<Option<Box<dyn GenFS>>> {
+        let x: Option<T> = T::try_open(f)?;
+        let x: Option<Box<dyn GenFS>> = x.map(|x| Box::new(x) as Box<dyn GenFS>);
+        Ok(x)
+    }
+    
+    fn enabled_by_default(&self) -> bool {
+        !T::LOW_CONFIDENCE_SNIFF
+    }
+    
+    fn format_name(&self) -> &'static str {
+        T::FORMAT_NAME
+    }
+}
+
+impl<T: GenFS> GenericFSHelperImpl<T> {
+    const INSTANCE: Self = Self(PhantomData{});
+}
+
+pub const FORMATS: &[&dyn GenericFSHelper] = &[
+    &GenericFSHelperImpl::<ZipFile>::INSTANCE,
+    &GenericFSHelperImpl::<GzipF>::INSTANCE,
+    &GenericFSHelperImpl::<BzipF>::INSTANCE,
+    &GenericFSHelperImpl::<UpxF>::INSTANCE,
+    &GenericFSHelperImpl::<PBufF>::INSTANCE,
+    &GenericFSHelperImpl::<LinuzZImgF>::INSTANCE,
+    &GenericFSHelperImpl::<DtboF>::INSTANCE,
+    &GenericFSHelperImpl::<DtbF>::INSTANCE,
+    &GenericFSHelperImpl::<ShannonF>::INSTANCE,
+    &GenericFSHelperImpl::<Ext4F>::INSTANCE,
+    &GenericFSHelperImpl::<PemCertF>::INSTANCE,
+    &GenericFSHelperImpl::<DerCertF>::INSTANCE,
+    &GenericFSHelperImpl::<Md1imgF>::INSTANCE,
+    &GenericFSHelperImpl::<HmfsF>::INSTANCE,
+    &GenericFSHelperImpl::<Qcow2F>::INSTANCE,
+    &GenericFSHelperImpl::<AbootimgF>::INSTANCE,
+    &GenericFSHelperImpl::<OhosF>::INSTANCE,
+    &GenericFSHelperImpl::<ErofsF>::INSTANCE,
+    &GenericFSHelperImpl::<CpioFile>::INSTANCE,
+    &GenericFSHelperImpl::<TarFile>::INSTANCE,
+    &GenericFSHelperImpl::<UnixArF>::INSTANCE,
+    &GenericFSHelperImpl::<LibLPf>::INSTANCE,
+    &GenericFSHelperImpl::<SparseF>::INSTANCE,
+    &GenericFSHelperImpl::<Lz4F>::INSTANCE,
+    &GenericFSHelperImpl::<LzfseF>::INSTANCE,
+    &GenericFSHelperImpl::<LzoF>::INSTANCE,
+    &GenericFSHelperImpl::<VendorBoot>::INSTANCE,
+    &GenericFSHelperImpl::<Ptbl>::INSTANCE,
+    &GenericFSHelperImpl::<TlvF>::INSTANCE,
+    &GenericFSHelperImpl::<Mx140F>::INSTANCE,
+    &GenericFSHelperImpl::<ChromeosOTAF>::INSTANCE,
+    &GenericFSHelperImpl::<MbrF>::INSTANCE,
+    &GenericFSHelperImpl::<FbpackF>::INSTANCE,
+    &GenericFSHelperImpl::<F2fsF>::INSTANCE,
+    &GenericFSHelperImpl::<MtkHblrF>::INSTANCE,
+    &GenericFSHelperImpl::<LzmaF>::INSTANCE,
+    &GenericFSHelperImpl::<MtkDbgF>::INSTANCE,
+    &GenericFSHelperImpl::<Esp32F>::INSTANCE,
+    &GenericFSHelperImpl::<UpdateAppF>::INSTANCE,
+    &GenericFSHelperImpl::<XzF>::INSTANCE,
+    &GenericFSHelperImpl::<RarFile>::INSTANCE,
+    &GenericFSHelperImpl::<RpmF>::INSTANCE,
+    &GenericFSHelperImpl::<AllwinnerA10F>::INSTANCE,
+    &GenericFSHelperImpl::<VbmetaF>::INSTANCE,
+    &GenericFSHelperImpl::<PbzxF>::INSTANCE,
+    &GenericFSHelperImpl::<XarF>::INSTANCE,
+    &GenericFSHelperImpl::<YaaF>::INSTANCE,
+    &GenericFSHelperImpl::<FbptF>::INSTANCE,
+    &GenericFSHelperImpl::<DtbhF>::INSTANCE,
+    &GenericFSHelperImpl::<Img4F>::INSTANCE,
+    &GenericFSHelperImpl::<ZowieboxF>::INSTANCE,
+    &GenericFSHelperImpl::<FtabF>::INSTANCE,
+    &GenericFSHelperImpl::<UbootUImgF>::INSTANCE,
+    &GenericFSHelperImpl::<BootldrF>::INSTANCE,
+    &GenericFSHelperImpl::<SevenZipF>::INSTANCE,
+];
+
+
 pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn GenFS>> {
     let fref = f.get_ref();
 
-    macro_rules! try_format {
-        ($typ: ident, $def: expr, $name: expr) => {
-            if format.map(|c| c == $typ::FORMAT_NAME).unwrap_or($def) {
-                match $typ::try_open(&fref) {
-                    Ok(Some(f)) => return Some(Box::new(f)),
+    for f in FORMATS {
+        if format.map(|c| c == f.format_name()).unwrap_or(f.enabled_by_default()) {
+                match f.try_open(&fref) {
+                    Ok(Some(f)) => return Some(f),
                     Ok(None) => {}
                     Err(e) => {
-                        println!("{} - {:?}", $name, e);
+                        println!("{} - {:?}", f.format_name(), e);
                     }
                 }
             }
-        };
     }
-
-    try_format!(ZipFile, true, "zip");
-    try_format!(GzipF, true, "gzip");
-    try_format!(BzipF, true, "bzip");
-    try_format!(UpxF, true, "upx");
-    try_format!(PBufF, true, "protobuf");
-    try_format!(LinuzZImgF, true, "linux_zimg");
-    try_format!(DtboF, true, "dtbo");
-    try_format!(DtbF, true, "dtb");
-    try_format!(ShannonF, true, "shannon");
-    try_format!(Ext4F, false, "ext4");
-    try_format!(PemCertF, true, "pem_cert");
-    try_format!(DerCertF, true, "der_cert");
-    try_format!(Md1imgF, true, "mtk_md1img");
-    try_format!(HmfsF, true, "HmfsF");
-    try_format!(Qcow2F, true, "qcow2f");
-    try_format!(AbootimgF, true, "abootimg");
-    try_format!(OhosF, true, "ohos");
-    try_format!(ErofsF, true, "erofs");
-    try_format!(CpioFile, true, "cpio");
-    try_format!(TarFile, true, "tar");
-    try_format!(UnixArF, true, "ar");
-    try_format!(LibLPf, true, "lpf");
-    try_format!(SparseF, true, "sparse");
-    try_format!(Lz4F, true, "lz4");
-    try_format!(LzfseF, true, "lzfse");
-    try_format!(LzoF, true, "lzo");
-    try_format!(VendorBoot, true, "vendorboot");
-    try_format!(Ptbl, true, "lpf");
-    try_format!(TlvF, false, "tlvf");
-    try_format!(Mx140F, false, "mx140");
-    try_format!(ChromeosOTAF, true, "chromeota");
-    try_format!(MbrF, true, "MBR");
-    try_format!(FbpackF, true, "fbpack");
-    try_format!(F2fsF, true, "f2fs");
-    try_format!(MtkHblrF, true, "HBLR");
-    try_format!(LzmaF, true, "lzma");
-    try_format!(MtkDbgF, true, "mtk_dbg");
-    try_format!(Esp32F, true, "esp32_fw");
-    try_format!(UpdateAppF, true, "update_app");
-    try_format!(XzF, true, "xz");
-    try_format!(RarFile, false, "rar");
-    try_format!(RpmF, true, "rpm");
-    try_format!(AllwinnerA10F, true, "allwinner_a10");
-    try_format!(VbmetaF, true, "vbmeta");
-    try_format!(PbzxF, true, "pbzx");
-    try_format!(XarF, true, "xar");
-    try_format!(YaaF, true, "yaa");
-    try_format!(FbptF, true, "fbpt");
-    try_format!(DtbhF, true, "dtbh");
-    try_format!(Img4F, true, "img4");
-    try_format!(ZowieboxF, true, "zowiebox");
-    try_format!(FtabF, true, "ftab");
-    try_format!(UbootUImgF, true, "uimage");
-    try_format!(BootldrF, true, "bootldr");
-    try_format!(SevenZipF, true, "7z");
 
     None
 }
