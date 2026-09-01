@@ -19,6 +19,7 @@ pub struct Ext4F {
 
 impl GenFSProps for Ext4F {
     const FORMAT_NAME: &'static str = "ext4";
+    const LOW_CONFIDENCE_SNIFF: bool = true;
 }
 
 struct MmapWrapper {

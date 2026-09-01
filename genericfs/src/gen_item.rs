@@ -46,6 +46,10 @@ impl BufGenItm {
             pos: 0,
         }
     }
+
+    pub fn new_empty<T: AsRef<str>>(name: T) -> Self {
+        Self::new(name, Vec::new())
+    }
 }
 
 impl GenItem for BufGenItm {

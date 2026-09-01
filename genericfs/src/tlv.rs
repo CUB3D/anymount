@@ -21,6 +21,7 @@ pub struct TlvF {
 
 impl GenFSProps for TlvF {
     const FORMAT_NAME: &'static str = "tlv";
+    const LOW_CONFIDENCE_SNIFF: bool = true;
 }
 
 impl GenFS for TlvF {

@@ -1,6 +1,6 @@
 //! Apple IMG4 (iOS firmware)
 
-use image4::{der::Decode, payload::compr_info::COMPR_ALGO_LZFSE, ImageRef};
+use image4::{ImageRef, der::Decode, payload::compr_info::COMPR_ALGO_LZFSE};
 use memmap2::Mmap;
 
 use crate::file_ref::FileRef;
