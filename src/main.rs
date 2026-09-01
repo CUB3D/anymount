@@ -209,22 +209,28 @@ pub fn extract_file(
     }
 
     if recurse {
-        for ent in std::fs::read_dir(out)
-            .context("Failed to read dir")?
-            .flatten()
-        {
-            if ent.file_type()?.is_dir() {
-                info!("Ignoring dir {}", ent.path().display());
-                continue;
+        fn recurse_dir(out: &Path, fmt: &Option<String>, recurse: bool) -> anyhow::Result<()> {
+            for ent in std::fs::read_dir(out)
+                .context("Failed to read dir")?
+                .flatten()
+            {
+                if ent.file_type()?.is_dir() {
+                    recurse_dir(&ent.path(), fmt, recurse)?;
+                    continue;
+                }
+
+                let pth = ent.path();
+                let out = out.join(format!("{}_ext", ent.file_name().to_string_lossy()));
+
+                if let Err(e) = extract_file(&pth, &out, fmt, recurse) {
+                    error!("Failed to extract {}, {}", pth.display(), e);
+                }
             }
 
-            let pth = ent.path();
-            let out = out.join(format!("{}_ext", ent.file_name().to_string_lossy()));
-
-            if let Err(e) = extract_file(&pth, &out, fmt, recurse) {
-                error!("Failed to extract {}, {}", pth.display(), e);
-            }
+            Ok(())
         }
+
+        recurse_dir(out, fmt, false)?;
     }
 
     Ok(())
