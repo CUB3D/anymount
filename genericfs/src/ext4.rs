@@ -4,7 +4,7 @@ use anyhow::Context;
 use ext4_view::{Ext4, Ext4Read};
 use memmap2::Mmap;
 use std::error::Error;
-
+use parse::{le_u16, take_arr};
 use crate::file_ref::FileRef;
 use crate::generic_fs_props::GenFSProps;
 use crate::{
@@ -19,7 +19,6 @@ pub struct Ext4F {
 
 impl GenFSProps for Ext4F {
     const FORMAT_NAME: &'static str = "ext4";
-    const LOW_CONFIDENCE_SNIFF: bool = true;
 }
 
 struct MmapWrapper {
@@ -93,12 +92,14 @@ impl GenFS for Ext4F {
         Ok(Self { o, idx: 0 })
     }
 
-    fn sniff(_f: &Mmap) -> anyhow::Result<bool>
+    fn sniff(f: &Mmap) -> anyhow::Result<bool>
     where
         Self: Sized,
     {
-        //TODOs
-        Ok(true)
+        let (i, _) = take_arr::<1024>(f)?;
+        let (i, _) = take_arr::<56>(i)?;
+        let (_, magic) = le_u16(i)?;
+        Ok(magic == 0xEF53)
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

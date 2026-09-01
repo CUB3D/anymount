@@ -1,6 +1,7 @@
 use rar_stream::{FileMedia, InnerFile, ParseOptions, RarFilesPackage};
 pub use std::io::Read;
 use std::sync::Arc;
+use memmap2::Mmap;
 use tracing::info;
 
 use crate::file_ref::FileRef;
@@ -46,21 +47,15 @@ impl GenFS for RarFile {
         Ok(Self { files: res, idx: 0 })
     }
 
-    // fn sniff(f: &Mmap) -> anyhow::Result<bool>
-    // where
-    //     Self: Sized,
-    // {
-    //     let hdr = f.get(..4);
-    //
-    //     if hdr != Some(&[0x50, 0x4b, 0x03, 0x04])
-    //         && hdr != Some(&[0x50, 0x4b, 0x05, 0x06])
-    //         && hdr != Some(&[0x50, 0x4b, 0x07, 0x08])
-    //     {
-    //         return Ok(false);
-    //     }
-    //
-    //     Ok(true)
-    // }
+    fn sniff(f: &Mmap) -> anyhow::Result<bool>
+    where
+        Self: Sized,
+    {
+        let hdr = f.get(..4);
+        Ok((hdr == Some(&[0x50, 0x4b, 0x03, 0x04]))
+            || (hdr == Some(&[0x50, 0x4b, 0x05, 0x06]))
+            || (hdr != Some(&[0x50, 0x4b, 0x07, 0x08])))
+    }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
         if let Some(f) = self.files.get(self.idx) {

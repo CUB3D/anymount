@@ -28,6 +28,7 @@ pub struct ZipFile {
     pub zip: ::zip::ZipArchive<BufReader<File>>,
     pub entries: Vec<ZipEntry>,
     pub idx: usize,
+    pub zip_idx: usize,
 }
 
 impl GenFSProps for ZipFile {
@@ -41,38 +42,13 @@ impl GenFS for ZipFile {
     {
         let f = f.owned_file();
         let c = Config::default();
-        let mut z = zip::ZipArchive::with_config(c, BufReader::new(f))?;
-
-        let mut entries = Vec::new();
-        let mut idx = 0;
-        while let Ok(f) = z.by_index(idx) {
-            if f.encrypted() {
-                entries.push(ZipEntry::Encrypted(idx));
-            } else if f.is_symlink() {
-                entries.push(ZipEntry::Symlink(idx));
-            } else {
-                // Skip non-encrypted dirs
-                if !f.is_dir() {
-                    idx += 1;
-                    continue;
-                }
-
-                entries.push(ZipEntry::File(idx));
-
-                if !f.comment().is_empty() {
-                    entries.push(ZipEntry::Comment(idx));
-                }
-
-                if f.extra_data().is_some() {
-                    entries.push(ZipEntry::Extra(idx));
-                }
-            }
-        }
+        let z = zip::ZipArchive::with_config(c, BufReader::new(f))?;
 
         Ok(Self {
             zip: z,
             idx: 0,
-            entries,
+            zip_idx: 0,
+            entries: Vec::new(),
         })
     }
 
@@ -86,6 +62,37 @@ impl GenFS for ZipFile {
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
+        if self.idx == self.entries.len() {
+            while let Ok(f) = self.zip.by_index(self.zip_idx) {
+                if f.encrypted() {
+                    self.entries.push(ZipEntry::Encrypted(self.zip_idx));
+                    self.zip_idx += 1;
+                } else if f.is_symlink() {
+                    self.entries.push(ZipEntry::Symlink(self.zip_idx));
+                    self.zip_idx += 1;
+                } else {
+                    // Skip non-encrypted dirs
+                    if f.is_dir() {
+                        self.zip_idx += 1;
+                        continue;
+                    }
+
+                    self.entries.push(ZipEntry::File(self.zip_idx));
+
+                    if !f.comment().is_empty() {
+                        self.entries.push(ZipEntry::Comment(self.zip_idx));
+                    }
+
+                    if f.extra_data().is_some() {
+                        self.entries.push(ZipEntry::Extra(self.zip_idx));
+                    }
+                    self.zip_idx += 1;
+
+                    break;
+                }
+            }
+        }
+
         if let Some(&ent) = self.entries.get(self.idx) {
             self.idx += 1;
 

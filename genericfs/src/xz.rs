@@ -36,7 +36,7 @@ impl GenFS for XzF {
     where
         Self: Sized,
     {
-        Ok(f.get(..6) != Some(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]))
+        Ok(f.get(..6) == Some(&[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

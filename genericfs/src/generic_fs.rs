@@ -3,7 +3,7 @@ use memmap2::Mmap;
 use std::marker::PhantomData;
 use std::os::unix::fs::MetadataExt;
 use std::path::Path;
-use tracing::warn;
+use tracing::{debug, warn};
 
 use crate::abootimg::AbootimgF;
 use crate::ar::UnixArF;
@@ -186,6 +186,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     let fref = f.get_ref();
 
     for f in FORMATS {
+        debug!("Probe fmt {}", f.format_name());
         if format.map(|c| c == f.format_name()).unwrap_or(f.enabled_by_default()) {
                 match f.try_open(&fref) {
                     Ok(Some(f)) => return Some(f),

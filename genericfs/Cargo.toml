@@ -22,7 +22,8 @@ bzip2 = { version = "=0.6.1" }
 decode_raw = "=0.2.0"
 abootimg-oxide = "=0.5.2"
 openssl = { version = "=0.10.81", features = ["vendored"] }
-ext4-view = "=0.9.3"
+#ext4-view = "=0.9.3"
+ext4-view = {git = "https://github.com/nicholasbishop/ext4-view-rs", rev = "c8d10a87395ff2c0312902eab567335f12a0de1b"}
 dtb = "=0.2.0"
 qcow2 = { git = "https://github.com/CUB3D/qcow2-rs" }
 positioned-io = "=0.3.5"

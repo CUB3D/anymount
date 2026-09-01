@@ -1,5 +1,5 @@
 //! fbpack ("FastBoot PacK") - used by Pixel modems
-//! https://github.com/LineageOS/scripts/tree/main/fbpacktool - qualcomm modem pixel 5 mar 2023
+//! https://github.com/LineageOS/scripts/tree/main/fbpacktool - Qualcomm modem pixel 5 mar 2023
 
 use memmap2::Mmap;
 use parse::{le_u32, le_u64, take_arr, take_cstr_utf8, take_vec};
@@ -48,22 +48,6 @@ impl GenFSProps for FbpackF {
 }
 
 impl GenFS for FbpackF {
-    fn sniff(f: &Mmap) -> anyhow::Result<bool>
-    where
-        Self: Sized,
-    {
-        let (i, magic) = le_u32(f)?;
-        let (_i, version) = le_u32(i)?;
-
-        // FBPK
-        //TODO: bootldr format
-        if magic == 0x4b504246 && (version == 1 || version == 2) {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
     fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
     where
         Self: Sized,
@@ -109,7 +93,7 @@ impl GenFS for FbpackF {
             for ii in 0..ent_cnt {
                 let (_, mut ent) = read_pack_ent_v1(i)?;
                 println!("{:?}", ent);
-                data_offset += 4 + 36 + 4 + 4 + 4 + 4 + 4;
+                data_offset += 4 + 32 + 4 + 4 + 4 + 4 + 4;
                 ent.data_offset = data_offset;
 
                 let next_off = ((ent.next_off_h as u64) << 32) | (ent.next_off as u64);
@@ -174,6 +158,22 @@ impl GenFS for FbpackF {
             })
         } else {
             todo!();
+        }
+    }
+
+    fn sniff(f: &Mmap) -> anyhow::Result<bool>
+    where
+        Self: Sized,
+    {
+        let (i, magic) = le_u32(f)?;
+        let (_i, version) = le_u32(i)?;
+
+        // FBPK
+        //TODO: bootldr format
+        if magic == 0x4b504246 && (version == 1 || version == 2) {
+            Ok(true)
+        } else {
+            Ok(false)
         }
     }
 

@@ -34,7 +34,6 @@ struct ExtCmd {
 
 #[derive(Debug, Subcommand)]
 enum Cmd {
-
     /// Mount the given file with FUSE
     #[cfg(target_os = "linux")]
     Mnt {
@@ -59,13 +58,19 @@ enum Cmd {
         fmt: Option<String>,
     },
 
+    /// Identify the type of this file
+    Id {
+        /// The file to open
+        #[clap(required = true)]
+        pth: String,
+    },
+
     /// Open the GUI to explore an archive
     Browse {
         /// The file to open
         #[clap(required = true)]
         pth: String,
     },
-
 
     /// List the supported formats
     Formats,
@@ -91,11 +96,6 @@ fn main() -> anyhow::Result<()> {
     });
 
     match args.cmd {
-        Cmd::Formats => {
-            for f in genericfs::generic_fs::FORMATS {
-                 println!("- {}", f.format_name());
-            }
-        }
         #[cfg(target_os = "linux")]
         Cmd::Mnt { pth, src } => {
             use std::io::Read;
@@ -110,6 +110,11 @@ fn main() -> anyhow::Result<()> {
                     break;
                 }
                 println!("---");
+            }
+        }
+        Cmd::Formats => {
+            for f in genericfs::generic_fs::FORMATS {
+                println!("- {}", f.format_name());
             }
         }
         Cmd::Browse { pth } => {
@@ -156,6 +161,21 @@ fn main() -> anyhow::Result<()> {
                 while let Ok(Some(fi)) = f.next_itm() {
                     info!("- '{}', {}k", fi.name(), fi.size() >> 12,);
                 }
+            } else {
+                error!("Unrecognized format");
+            }
+        }
+        Cmd::Id { pth } => {
+            let pth = PathBuf::from(pth);
+            let pth = std::fs::canonicalize(pth)?;
+
+            if !pth.exists() {
+                error!("Src file not found");
+                return Ok(());
+            }
+
+            if let Some(f) = genericfs::generic_fs::try_open(&pth, None) {
+                info!("Found a {} file", f.name());
             } else {
                 error!("Unrecognized format");
             }
