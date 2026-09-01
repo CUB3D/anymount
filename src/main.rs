@@ -232,4 +232,4 @@ pub fn extract_file(
 
 #[cfg(target_os = "linux")]
 mod fuse;
-// pub mod gui;
+pub mod gui;
