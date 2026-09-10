@@ -28,6 +28,7 @@ qcow2 = { git = "https://github.com/CUB3D/qcow2-rs" }
 positioned-io = "=0.3.5"
 mbrman = "=0.6.1"
 rust-lzo = "=0.6.2"
+aes = "=0.8.4"
 lzma-rust2 = "=0.20.1"
 serde = "=1.0.229"
 rar-stream = { path = "../vendor/rar-stream", features = ["async", "crypto"] }

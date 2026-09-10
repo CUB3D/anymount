@@ -1685,6 +1685,7 @@ name = "genericfs"
 version = "0.1.0"
 dependencies = [
  "abootimg-oxide",
+ "aes",
  "android-sparse",
  "anyhow",
  "apple-xar",
