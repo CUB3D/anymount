@@ -1,17 +1,19 @@
 //! Unreal engine 3 UPX files
 //! https://github.com/stricq/UPKManager/blob/master/UPK_Format.pdf
+//! For bytecode: https://github.com/yole/unhood/blob/master/UnHood.Engine/BytecodeReader.cs#L193
 
 use crate::file_ref::FileRef;
 use crate::gen_item::{BufGenItm, GenItem};
 use crate::generic_fs::GenFS;
 use crate::generic_fs_props::GenFSProps;
 use memmap2::Mmap;
-use parse::{le_i32, le_u32, le_u64, take, take_arr, take_vec};
+use parse::{le_i32, le_u32, le_u64, ne_u8, take, take_arr, take_vec};
 use rust_lzo::{LZOContext, LZOError};
 
 use aes::cipher::{BlockDecrypt, KeyInit};
 use aes::Aes256;
 use aes::cipher::generic_array::GenericArray;
+use tracing::warn;
 
 pub struct UpxF {
     upx: UpxFile,
@@ -24,7 +26,7 @@ impl GenFSProps for UpxF {
 
 fn fstring(i: &[u8]) -> anyhow::Result<(&[u8], String)> {
     let (i, len) = le_i32(i)?;
-    assert!(len > 0); // ascii, null term
+    assert!(len >= 0); // ascii, null term
     let (i, s) = take(i, len as usize)?;
     Ok((
         i,
@@ -49,6 +51,94 @@ pub struct Fgen {
     pub netobjcnt: u32,
 }
 
+#[derive(Debug)]
+struct FNameEntry {
+    name: String,
+    flags: u64
+}
+
+fn read_fname_entry(i: &[u8]) -> anyhow::Result<(&[u8], FNameEntry)> {
+    let (i, name) = fstring(i)?;
+    let (i, flags) = le_u64(i)?;
+    Ok((i, FNameEntry {
+        name,
+        flags,
+    }))
+}
+
+#[derive(Debug)]
+struct FObjectImport {
+    pkg_idx: u64,
+    type_idx: u64,
+    owner_ref: u32,
+    name_idx: u64
+}
+
+fn read_object_import(i: &[u8]) -> anyhow::Result<(&[u8], FObjectImport)> {
+    let (i, pkg_idx) = le_u64(i)?;
+    let (i, type_idx) = le_u64(i)?;
+    let (i, owner_ref) = le_u32(i)?;
+    let (i, name_idx) = le_u64(i)?;
+    Ok((i, FObjectImport {
+        pkg_idx,
+        type_idx,
+        owner_ref,
+        name_idx,
+    }))
+}
+
+#[derive(Debug)]
+struct FObjectExport {
+    type_ref: u32,
+    parent_class_ref: u32,
+    owner_ref: u32,
+    name_idx: u64,
+    archetype_ref: u32,
+    objectflags_h: u32,
+    objectflags_l: u32,
+    serial_sz: u32,
+    serial_off: u32,
+    export_flags: u32,
+    obj_count: u32,
+    guid: [u8; 16],
+    _unk: u32,
+    data: Vec<u8>,
+}
+
+fn read_object_export(i: &[u8]) -> anyhow::Result<(&[u8], FObjectExport)> {
+    let (i, type_ref) = le_u32(i)?;
+    let (i, parent_class_ref) = le_u32(i)?;
+    let (i, owner_ref) = le_u32(i)?;
+    let (i, name_idx) = le_u64(i)?;
+    let (i, archetype_ref) = le_u32(i)?;
+    let (i, objectflags_h) = le_u32(i)?;
+    let (i, objectflags_l) = le_u32(i)?;
+    let (i, serial_sz) = le_u32(i)?;
+    let (i, serial_off) = le_u32(i)?;
+    let (i, export_flags) = le_u32(i)?;
+    let (i, obj_count) = le_u32(i)?;
+    let (i, guid) = take_arr::<16>(i)?;
+    let (i, _unk) = le_u32(i)?;
+    let (i, data) = take_vec(i, obj_count as usize * 4, ne_u8)?;
+
+    Ok((i, FObjectExport {
+        type_ref,
+        parent_class_ref,
+        owner_ref,
+        name_idx,
+        archetype_ref,
+        objectflags_h,
+        objectflags_l,
+        serial_sz,
+        serial_off,
+        export_flags,
+        obj_count,
+        guid,
+        _unk,
+        data,
+    }))
+}
+
 fn fgen(i: &[u8]) -> anyhow::Result<(&[u8], Fgen)> {
     let (i, expcnt) = le_u32(i)?;
     let (i, namecnt) = le_u32(i)?;
@@ -69,12 +159,12 @@ pub struct UpxFile {
     pub hdrsz: u32,
     pub pkg: String,
     pub pkgflag: u32,
-    pub namecnt: u32,
-    pub nameoff: u32,
-    pub expcnt: u32,
-    pub expoff: u32,
-    pub impcnt: u32,
-    pub impoff: u32,
+    pub name_count: u32,
+    pub name_offset: u32,
+    pub export_count: u32,
+    pub export_offset: u32,
+    pub import_count: u32,
+    pub import_offset: u32,
     pub depoff: u32,
     pub seroff: u32,
     pub unk2: u32,
@@ -87,6 +177,10 @@ pub struct UpxFile {
     pub compflag: u32,
     pub chunks: Vec<FCompChunk>,
     pub content: Vec<u8>,
+
+    pub name_table: Vec<FNameEntry>,
+    pub import_table: Vec<FObjectImport>,
+    pub export_table: Vec<FObjectExport>,
 }
 
 impl GenFS for UpxF {
@@ -101,12 +195,12 @@ impl GenFS for UpxF {
         let (i, pkg) = fstring(i)?;
 
         let (i, pkgflag) = le_u32(i)?;
-        let (i, namecnt) = le_u32(i)?;
-        let (i, nameoff) = le_u32(i)?;
-        let (i, expcnt) = le_u32(i)?;
-        let (i, expoff) = le_u32(i)?;
-        let (i, impcnt) = le_u32(i)?;
-        let (i, impoff) = le_u32(i)?;
+        let (i, name_count) = le_u32(i)?;
+        let (i, name_offset) = le_u32(i)?;
+        let (i, export_count) = le_u32(i)?;
+        let (i, export_offset) = le_u32(i)?;
+        let (i, import_count) = le_u32(i)?;
+        let (i, import_offset) = le_u32(i)?;
         let (i, depoff) = le_u32(i)?;
         let (i, seroff) = le_u32(i)?;
         let (i, unk2) = le_u32(i)?;
@@ -149,12 +243,12 @@ impl GenFS for UpxF {
             hdrsz,
             pkg,
             pkgflag,
-            namecnt,
-            nameoff,
-            expcnt,
-            expoff,
-            impcnt,
-            impoff,
+            name_count,
+            name_offset,
+            export_count,
+            export_offset,
+            import_count,
+            import_offset,
             depoff,
             seroff,
             unk2,
@@ -167,9 +261,12 @@ impl GenFS for UpxF {
             compflag,
             chunks,
             content: Vec::new(),
+            name_table: Vec::new(),
+            import_table: Vec::new(),
+            export_table: Vec::new(),
         };
 
-        println!("{:x} {} {} {} {}", nameoff, expoff, impoff, depoff, seroff);
+        // We can't parse anything else here because we need to decrypt and decompress the chunks before any of the indexes have meaning
 
         for c in &upx.chunks {
             let base = c.comp_off as usize;
@@ -226,19 +323,151 @@ impl GenFS for UpxF {
         let mut full = f.mmap[..foo].to_vec();
         full.extend_from_slice(&upx.content[foo..]);
 
-        let i = &upx.content[upx.expoff as usize..];
-        let (i, ty) = le_u32(i)?;
-        let (i, parent) = le_u32(i)?;
-        let (i, owner) = le_u32(i)?;
-        let (i, name) = le_u64(i)?;
-        let (i, archtype) = le_u32(i)?;
-        let (i, objflag1) = le_u32(i)?;
-        let (i, objflag2) = le_u32(i)?;
-        let (i, sz) = le_u32(i)?;
-        let (_i, _off) = le_u32(i)?;
 
-        println!("{ty} {parent} {owner} {name} {archtype} {objflag1} {objflag2} {sz}");
+        // Read name table
+        let (_, name_table) = take_vec(&upx.content[name_offset as usize..], name_count as usize, read_fname_entry)?;
+        upx.name_table = name_table;
 
+        let (_, import_table) = take_vec(&upx.content[import_offset as usize..], import_count as usize, read_object_import)?;
+        upx.import_table = import_table;
+
+        let (_, export_table) = take_vec(&upx.content[export_offset as usize..], export_count as usize, read_object_export)?;
+        upx.export_table = export_table;
+
+        for e in &upx.export_table {
+            let n = match upx.name_table.get(e.name_idx as usize) {
+                Some(n) => n,
+                None => {
+                    warn!("Failed to find name for {}", e.name_idx);
+                    continue
+                },
+            };
+
+            println!("Name: {}", n.name);
+
+            let has_stack = e.objectflags_l & 0x02000000 != 0;
+
+            let type_name = if (e.type_ref as i32) < 0 {
+                let i = &upx.import_table[(-(e.type_ref as i32)) as usize];
+                i.name_idx
+            } else {
+                let i = &upx.export_table[e.type_ref as usize];
+                i.name_idx
+            };
+            let type_name = &upx.name_table[type_name as usize].name;
+            println!("Type: {}", type_name);
+
+            if (e.parent_class_ref as i32) < 0 {
+                let i = &upx.import_table[(-(e.parent_class_ref as i32)) as usize];
+                println!("Parent Type: {}", &upx.name_table[i.name_idx as usize].name);
+            } else {
+                let i = &upx.export_table[e.parent_class_ref as usize];
+                println!("Parent Type: {}", &upx.name_table[i.name_idx as usize].name);
+            }
+
+            let i = &upx.content[e.serial_off as usize..];
+
+            if type_name == "Enum" {
+                // UObject
+                let (i, net_idx) = le_u32(i)?;
+                assert!(!has_stack);
+                // UField
+                let (i, next_ref) = le_u32(i)?;
+
+                // UEnum
+                let (i, sz) = le_u32(i)?;
+                println!("sz = {:x}", sz);
+                let (i, names) = take_vec(i, sz as usize, le_u64)?;
+                for n in &names {
+                    println!("Enum child: {}", &upx.name_table[*n as usize].name);
+
+                }
+            }
+
+            if type_name == "Const" {
+                // UObject
+                let (i, net_idx) = le_u32(i)?;
+                assert!(!has_stack);
+                // UField
+                let (i, next_ref) = le_u32(i)?;
+                // UConst
+                let (_, s) = fstring(i)?;
+                println!("Value: {}", s);
+            }
+
+            if type_name == "ScriptStruct" {
+                // UObject
+                let (i, net_idx) = le_u32(i)?;
+                assert!(!has_stack);
+                // UField
+                let (i, next_ref) = le_u32(i)?;
+                // UStruct
+                let (i, script_text_ref) = le_u32(i)?;
+                let (i, first_child_ref) = le_u32(i)?;
+                let (i, cpp_text_ref) = le_u32(i)?;
+                let (i, line) = le_u32(i)?;
+                let (i, textpos) = le_u32(i)?;
+                let (i, scriptmemesz) = le_u32(i)?;
+                let (i, scriptserialsz) = le_u32(i)?;
+                let (i, data) = take(i, scriptserialsz as usize)?;
+
+                println!("{:x?}", data);
+
+                if !data.is_empty() && data.len() > 4 {
+                    panic!();
+                }
+            }
+
+            if type_name == "Function" {
+                // UObject
+                let (i, net_idx) = le_u32(i)?;
+                assert!(!has_stack);
+                // UField
+                let (i, next_ref) = le_u32(i)?;
+                // UStruct
+                let (i, script_text_ref) = le_u32(i)?;
+                let (i, first_child_ref) = le_u32(i)?;
+                let (i, cpp_text_ref) = le_u32(i)?;
+                let (i, line) = le_u32(i)?;
+                let (i, textpos) = le_u32(i)?;
+                let (i, scriptmemesz) = le_u32(i)?;
+                let (i, scriptserialsz) = le_u32(i)?;
+                let (i, data) = take(i, scriptserialsz as usize)?;
+
+                println!("{:x?}", data);
+
+                if !data.is_empty() && data.len() > 4 {
+                    panic!();
+                }
+            }
+
+            if type_name == "Class" {
+                // UObject
+                let (i, net_idx) = le_u32(i)?;
+                assert!(!has_stack);
+                // UField
+                let (i, next_ref) = le_u32(i)?;
+                // UStruct
+                let (i, script_text_ref) = le_u32(i)?;
+                let (i, first_child_ref) = le_u32(i)?;
+                let (i, cpp_text_ref) = le_u32(i)?;
+                let (i, line) = le_u32(i)?;
+                let (i, textpos) = le_u32(i)?;
+                let (i, scriptmemesz) = le_u32(i)?;
+                let (i, scriptserialsz) = le_u32(i)?;
+                let (i, data) = take(i, scriptserialsz as usize)?;
+
+                println!("{:x?}", data);
+
+                if !data.is_empty() && data.len() > 4 {
+                    panic!();
+                }
+            }
+
+            let (_, x) = le_u32(i)?;
+            println!("{:x}", x);
+
+        }
 
         Ok(Self { upx, idx: 0 })
     }
