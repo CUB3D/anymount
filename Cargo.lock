@@ -195,6 +195,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "apfs-core"
+version = "0.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c5646c83cddb18f7abf571e50d53e238fabb496c1177517842a6ac0c47408e5"
+dependencies = [
+ "bitflags 2.13.1",
+ "chrono",
+ "flate2",
+ "forensicnomicon",
+ "lzfse_rust",
+ "lzvn-core",
+ "thiserror 2.0.20",
+]
+
+[[package]]
 name = "apple-xar"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -643,6 +658,15 @@ checksum = "bdb116a6ef3f6c3698828873ad02c3014b3c85cadb88496095628e3ef1e347f8"
 dependencies = [
  "bzip2-sys",
  "libc",
+]
+
+[[package]]
+name = "bzip2"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "49ecfb22d906f800d4fe833b6282cf4dc1c298f5057ca0b5445e5c209735ca47"
+dependencies = [
+ "bzip2-sys",
 ]
 
 [[package]]
@@ -1542,6 +1566,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
 
 [[package]]
+name = "forensicnomicon"
+version = "1.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "634cce7a9f7bec3b4e40ee9014a1a633ad17dd08694b291066818c18c013fab1"
+dependencies = [
+ "forensicnomicon-core",
+ "forensicnomicon-data",
+]
+
+[[package]]
+name = "forensicnomicon-core"
+version = "1.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7eb783b79792587a65eb4fb0aeff41b471b44659fbacfe15f61d3685c122a889"
+
+[[package]]
+name = "forensicnomicon-data"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "78a2c24ccad1150609546fbe85ad466e2cf24443fdac13e32297acb4ef913c28"
+dependencies = [
+ "forensicnomicon-core",
+]
+
+[[package]]
 name = "form_urlencoded"
 version = "1.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1688,6 +1737,7 @@ dependencies = [
  "aes",
  "android-sparse",
  "anyhow",
+ "apfs-core",
  "apple-xar",
  "ar",
  "arcbox-ext4",
@@ -1720,6 +1770,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "udif",
  "xz",
  "zip",
 ]
@@ -2746,6 +2797,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "lzfse"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21b45f9990844d28a06dc7b7a3ffe3657e5379c8e3c0d6ae43a22e98a2256a0b"
+dependencies = [
+ "lzfse-sys",
+]
+
+[[package]]
+name = "lzfse-sys"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23c80418f1cfc4601f8ef2055dcea77eebea47d2edc74ee0dadb005dd3a9f604"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "lzfse_rust"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2788,6 +2857,12 @@ checksum = "953d350dc065718bb00b61ea2118274ffe2fdf6488f32f720422bcd1c9d6025f"
 dependencies = [
  "zerocopy",
 ]
+
+[[package]]
+name = "lzvn-core"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32c51f6215e459d29ee8b61c52074f545fe5518bcb351c590c6e98aec21a5a00"
 
 [[package]]
 name = "malloc_buf"
@@ -3642,6 +3717,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
+name = "plist"
+version = "1.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2896bade328c13f7042a297ea5ac5b0951f6cf989dea5f32c2fd98da398195cb"
+dependencies = [
+ "base64 0.23.1",
+ "indexmap 2.14.1",
+ "quick-xml 0.42.0",
+ "serde",
+ "time 0.3.55",
+]
+
+[[package]]
 name = "polling"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3808,6 +3896,15 @@ name = "quick-xml"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.42.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41b1177fdf999d2321d3fb46ff47159d9c1fb9ad66a4879f8c50a0b504615e9b"
 dependencies = [
  "memchr",
 ]
@@ -5008,6 +5105,7 @@ dependencies = [
  "powerfmt",
  "serde_core",
  "time-core",
+ "time-macros",
 ]
 
 [[package]]
@@ -5015,6 +5113,16 @@ name = "time-core"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1c906769ad99c88eaa54e728060edef082f8e358ff32030cb7c7d315e81109"
+
+[[package]]
+name = "time-macros"
+version = "0.2.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7e689342a48d2ea927c87ea50cabf8594854bf940e9310208848d680d668ed85"
+dependencies = [
+ "num-conv",
+ "time-core",
+]
 
 [[package]]
 name = "tiny-skia"
@@ -5278,6 +5386,24 @@ name = "ucd-trie"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2896d95c02a80c6d6a5d6e953d479f5ddf2dfdb6a244441010e373ac0fb88971"
+
+[[package]]
+name = "udif"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5b1b33fd8c218eae8cab87be390740945902ff892be704b6c5a46ccdf8d4fcf0"
+dependencies = [
+ "base64 0.22.1",
+ "byteorder",
+ "bzip2 0.5.2",
+ "crc32fast",
+ "flate2",
+ "lzfse",
+ "plist",
+ "thiserror 2.0.20",
+ "xml-rs",
+ "xz2",
+]
 
 [[package]]
 name = "unicode-bidi"
@@ -5620,7 +5746,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "338e30461b3a2b67d70eb30a6d89f8e0c93a833e07d2ae89085cd070c4a00ac0"
 dependencies = [
  "proc-macro2",
- "quick-xml",
+ "quick-xml 0.41.0",
  "quote",
 ]
 

@@ -10,6 +10,7 @@ use crate::{
     gen_item::{BufGenItm, GenItem},
     generic_fs::GenFS,
 };
+use anyhow::Context;
 
 pub struct MbrF {
     idx: usize,
@@ -62,12 +63,13 @@ impl GenFS for MbrF {
                 // println!("sectors: {}", mbr.sector_size);
                 // println!("size: {}", size);
 
-                let past_header = &self.mmap[512..];
+                let past_header = &self.mmap.get(512..).context("CAnt get past header")?;
 
                 let mut d = vec![0u8; size as usize];
                 let file_size = size.min(past_header.len() as u64);
-                let data = &past_header[p.starting_lba as usize * self.mbr.sector_size as usize..]
-                    [..file_size as usize];
+                let data = &past_header.get(p.starting_lba as usize * self.mbr.sector_size as usize..)
+                .context("Get start")?
+                .get(..file_size as usize).context("Get end")?;
                 d[..file_size as usize].copy_from_slice(data);
 
                 return Ok(Some(Box::new(BufGenItm::new(

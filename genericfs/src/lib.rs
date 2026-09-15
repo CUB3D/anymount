@@ -3,11 +3,13 @@ pub mod generic_fs;
 
 pub mod abootimg;
 pub mod android_sparse;
+pub mod apfs;
 pub mod ar;
 pub mod bzip;
 pub mod chomeos_ota;
 pub mod cpio;
 pub mod der_cert;
+pub mod dmg;
 pub mod dtb;
 pub mod erofs;
 pub mod ext4;

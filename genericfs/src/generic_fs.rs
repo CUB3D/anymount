@@ -6,9 +6,11 @@ use std::path::Path;
 use tracing::{debug, warn};
 
 use crate::abootimg::AbootimgF;
+use crate::apfs::ApfsF;
 use crate::ar::UnixArF;
 use crate::bzip::BzipF;
 use crate::der_cert::DerCertF;
+use crate::dmg::DmgF;
 use crate::dtb::DtbF;
 use crate::erofs::ErofsF;
 use crate::ext4::Ext4F;
@@ -179,6 +181,8 @@ pub const FORMATS: &[&dyn GenericFSHelper] = &[
     &GenericFSHelperImpl::<UbootUImgF>::INSTANCE,
     &GenericFSHelperImpl::<BootldrF>::INSTANCE,
     &GenericFSHelperImpl::<SevenZipF>::INSTANCE,
+    &GenericFSHelperImpl::<DmgF>::INSTANCE,
+    &GenericFSHelperImpl::<ApfsF>::INSTANCE,
 ];
 
 
