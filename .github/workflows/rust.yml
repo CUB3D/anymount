@@ -15,6 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v7
+    - name: Install libfuse
+      run: apt-get install -y libfuse-dev
     - name: Install cargo-fuzz
       run: cargo install cargo-fuzz
     - name: Build
