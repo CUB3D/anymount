@@ -52,9 +52,9 @@ pub struct Fgen {
 }
 
 #[derive(Debug)]
-struct FNameEntry {
-    name: String,
-    flags: u64
+pub struct FNameEntry {
+    pub name: String,
+    pub flags: u64
 }
 
 fn read_fname_entry(i: &[u8]) -> anyhow::Result<(&[u8], FNameEntry)> {
@@ -67,11 +67,11 @@ fn read_fname_entry(i: &[u8]) -> anyhow::Result<(&[u8], FNameEntry)> {
 }
 
 #[derive(Debug)]
-struct FObjectImport {
-    pkg_idx: u64,
-    type_idx: u64,
-    owner_ref: u32,
-    name_idx: u64
+pub struct FObjectImport {
+    pub pkg_idx: u64,
+    pub type_idx: u64,
+    pub owner_ref: u32,
+    pub name_idx: u64
 }
 
 fn read_object_import(i: &[u8]) -> anyhow::Result<(&[u8], FObjectImport)> {
@@ -87,22 +87,23 @@ fn read_object_import(i: &[u8]) -> anyhow::Result<(&[u8], FObjectImport)> {
     }))
 }
 
+
 #[derive(Debug)]
-struct FObjectExport {
-    type_ref: u32,
-    parent_class_ref: u32,
-    owner_ref: u32,
-    name_idx: u64,
-    archetype_ref: u32,
-    objectflags_h: u32,
-    objectflags_l: u32,
-    serial_sz: u32,
-    serial_off: u32,
-    export_flags: u32,
-    obj_count: u32,
-    guid: [u8; 16],
-    _unk: u32,
-    data: Vec<u8>,
+pub struct FObjectExport {
+    pub type_ref: u32,
+    pub parent_class_ref: u32,
+    pub owner_ref: u32,
+    pub name_idx: u64,
+    pub archetype_ref: u32,
+    pub objectflags_h: u32,
+    pub objectflags_l: u32,
+    pub serial_sz: u32,
+    pub serial_off: u32,
+    pub export_flags: u32,
+    pub obj_count: u32,
+    pub guid: [u8; 16],
+    pub _unk: u32,
+    pub data: Vec<u8>,
 }
 
 fn read_object_export(i: &[u8]) -> anyhow::Result<(&[u8], FObjectExport)> {
@@ -214,9 +215,6 @@ impl GenFS for UpxF {
         let (i, enginever) = le_u32(i)?;
         let (i, cookver) = le_u32(i)?;
         let (i, compflag) = le_u32(i)?;
-        if compflag & 0xf != 2 {
-            anyhow::bail!("compressionFlags must be LZO {compflag:#x}");
-        }
 
         let (i, num_chunks) = le_u32(i)?;
 
@@ -296,13 +294,15 @@ impl GenFS for UpxF {
                 let (j, uncomp_sz) = le_u32(j)?;
                 i = j;
 
-                let inp = &f.mmap[doff..][..comp_sz as usize];
-                let (dec, err) =
-                    LZOContext::decompress_to_slice(inp, &mut upx.content[cur..][..uncomp_sz as usize]);
-                if err != LZOError::OK {
-                    panic!("failed to decompress upx");
+                if upx.compflag & 0x2 != 0 {
+                    let inp = &f.mmap[doff..][..comp_sz as usize];
+                    let (dec, err) =
+                        LZOContext::decompress_to_slice(inp, &mut upx.content[cur..][..uncomp_sz as usize]);
+                    if err != LZOError::OK {
+                        panic!("failed to decompress upx");
+                    }
+                    assert_eq!(dec.len(), uncomp_sz as usize);
                 }
-                assert_eq!(dec.len(), uncomp_sz as usize);
 
                 doff += comp_sz as usize;
                 cur += uncomp_sz as usize;
@@ -319,9 +319,9 @@ impl GenFS for UpxF {
             }
         }
 
-        let foo = upx.chunks.iter().map(|c| c.uncom_of).min().unwrap() as usize;
-        let mut full = f.mmap[..foo].to_vec();
-        full.extend_from_slice(&upx.content[foo..]);
+        if upx.compflag == 0 {
+            upx.content = f.mmap.to_vec();
+        }
 
 
         // Read name table
@@ -357,27 +357,27 @@ impl GenFS for UpxF {
             let type_name = &upx.name_table[type_name as usize].name;
             println!("Type: {}", type_name);
 
-            if (e.parent_class_ref as i32) < 0 {
-                let i = &upx.import_table[(-(e.parent_class_ref as i32)) as usize];
-                println!("Parent Type: {}", &upx.name_table[i.name_idx as usize].name);
-            } else {
-                let i = &upx.export_table[e.parent_class_ref as usize];
-                println!("Parent Type: {}", &upx.name_table[i.name_idx as usize].name);
-            }
+            // if (e.parent_class_ref as i32) < 0 {
+            //     let i = &upx.import_table[(-(e.parent_class_ref as i32)) as usize];
+            //     println!("Parent Type: {}", &upx.name_table[i.name_idx as usize].name);
+            // } else {
+            //     let i = &upx.export_table[e.parent_class_ref as usize];
+            //     println!("Parent Type: {}", &upx.name_table[i.name_idx as usize].name);
+            // }
 
             let i = &upx.content[e.serial_off as usize..];
 
             if type_name == "Enum" {
                 // UObject
-                let (i, net_idx) = le_u32(i)?;
+                let (i, _net_idx) = le_u32(i)?;
                 assert!(!has_stack);
                 // UField
-                let (i, next_ref) = le_u32(i)?;
+                let (i, _next_ref) = le_u32(i)?;
 
                 // UEnum
                 let (i, sz) = le_u32(i)?;
                 println!("sz = {:x}", sz);
-                let (i, names) = take_vec(i, sz as usize, le_u64)?;
+                let (_i, names) = take_vec(i, sz as usize, le_u64)?;
                 for n in &names {
                     println!("Enum child: {}", &upx.name_table[*n as usize].name);
 
@@ -386,10 +386,10 @@ impl GenFS for UpxF {
 
             if type_name == "Const" {
                 // UObject
-                let (i, net_idx) = le_u32(i)?;
+                let (i, _net_idx) = le_u32(i)?;
                 assert!(!has_stack);
                 // UField
-                let (i, next_ref) = le_u32(i)?;
+                let (i, _next_ref) = le_u32(i)?;
                 // UConst
                 let (_, s) = fstring(i)?;
                 println!("Value: {}", s);
@@ -397,65 +397,69 @@ impl GenFS for UpxF {
 
             if type_name == "ScriptStruct" {
                 // UObject
-                let (i, net_idx) = le_u32(i)?;
+                let (i, _net_idx) = le_u32(i)?;
                 assert!(!has_stack);
-                // UField
-                let (i, next_ref) = le_u32(i)?;
-                // UStruct
-                let (i, script_text_ref) = le_u32(i)?;
-                let (i, first_child_ref) = le_u32(i)?;
-                let (i, cpp_text_ref) = le_u32(i)?;
-                let (i, line) = le_u32(i)?;
-                let (i, textpos) = le_u32(i)?;
-                let (i, scriptmemesz) = le_u32(i)?;
-                let (i, scriptserialsz) = le_u32(i)?;
-                let (i, data) = take(i, scriptserialsz as usize)?;
+                // UDefaultPorpertyList
+                let (i, name_idx) = le_u32(i)?;
+                println!("Def prop: {}", &upx.name_table[name_idx as usize].name);
 
-                println!("{:x?}", data);
+                // UField
+                let (i, _next_ref) = le_u32(i)?;
+                // UStruct
+                let (i, _script_text_ref) = le_u32(i)?;
+                let (i, _first_child_ref) = le_u32(i)?;
+                let (i, _cpp_text_ref) = le_u32(i)?;
+                let (i, _line) = le_u32(i)?;
+                let (i, _textpos) = le_u32(i)?;
+                let (i, _scriptmemesz) = le_u32(i)?;
+                let (i, scriptserialsz) = le_u32(i)?;
+                let (_i, data) = take(i, scriptserialsz as usize)?;
 
                 if !data.is_empty() && data.len() > 4 {
-                    panic!();
+                    println!("Dat: {:x?}", data);
                 }
             }
 
             if type_name == "Function" {
                 // UObject
-                let (i, net_idx) = le_u32(i)?;
+                let (i, _net_idx) = le_u32(i)?;
                 assert!(!has_stack);
+                // UDefaultPorpertyList
+                let (i, name_idx) = le_u32(i)?;
+                println!("Def prop: {}", &upx.name_table[name_idx as usize].name);
                 // UField
-                let (i, next_ref) = le_u32(i)?;
+                let (i, _next_ref) = le_u32(i)?;
                 // UStruct
-                let (i, script_text_ref) = le_u32(i)?;
-                let (i, first_child_ref) = le_u32(i)?;
-                let (i, cpp_text_ref) = le_u32(i)?;
-                let (i, line) = le_u32(i)?;
-                let (i, textpos) = le_u32(i)?;
-                let (i, scriptmemesz) = le_u32(i)?;
+                let (i, _script_text_ref) = le_u32(i)?;
+                let (i, _first_child_ref) = le_u32(i)?;
+                let (i, _cpp_text_ref) = le_u32(i)?;
+                let (i, _line) = le_u32(i)?;
+                let (i, _textpos) = le_u32(i)?;
+                let (i, _scriptmemesz) = le_u32(i)?;
                 let (i, scriptserialsz) = le_u32(i)?;
-                let (i, data) = take(i, scriptserialsz as usize)?;
+                let (_i, data) = take(i, scriptserialsz as usize)?;
 
-                println!("{:x?}", data);
 
                 if !data.is_empty() && data.len() > 4 {
-                    panic!();
+                    println!("Dat: {:x?}", data);
                 }
             }
 
             if type_name == "Class" {
                 // UObject
-                let (i, net_idx) = le_u32(i)?;
+                let (i, _net_idx) = le_u32(i)?;
                 assert!(!has_stack);
                 // UField
-                let (i, next_ref) = le_u32(i)?;
+                let (i, _next_ref) = le_u32(i)?;
                 // UStruct
-                let (i, script_text_ref) = le_u32(i)?;
-                let (i, first_child_ref) = le_u32(i)?;
-                let (i, cpp_text_ref) = le_u32(i)?;
-                let (i, line) = le_u32(i)?;
-                let (i, textpos) = le_u32(i)?;
-                let (i, scriptmemesz) = le_u32(i)?;
+                let (i, _script_text_ref) = le_u32(i)?;
+                let (i, _first_child_ref) = le_u32(i)?;
+                let (i, _cpp_text_ref) = le_u32(i)?;
+                let (i, _line) = le_u32(i)?;
+                let (i, _textpos) = le_u32(i)?;
+                let (i, _scriptmemesz) = le_u32(i)?;
                 let (i, scriptserialsz) = le_u32(i)?;
-                let (i, data) = take(i, scriptserialsz as usize)?;
+                let (_i, data) = take(i, scriptserialsz as usize)?;
 
                 println!("{:x?}", data);
 
