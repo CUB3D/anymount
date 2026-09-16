@@ -57,6 +57,7 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::garmin::GarminF;
 
 pub trait GenFS {
     fn try_open(f: &FileRef) -> anyhow::Result<Option<Self>>
@@ -183,6 +184,7 @@ pub const FORMATS: &[&dyn GenericFSHelper] = &[
     &GenericFSHelperImpl::<SevenZipF>::INSTANCE,
     &GenericFSHelperImpl::<DmgF>::INSTANCE,
     &GenericFSHelperImpl::<ApfsF>::INSTANCE,
+    &GenericFSHelperImpl::<GarminF>::INSTANCE,
 ];
 
 

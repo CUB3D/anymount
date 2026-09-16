@@ -63,6 +63,9 @@ enum Cmd {
         /// The file to open
         #[clap(required = true)]
         pth: String,
+
+        #[clap(required = false, long)]
+        fmt: Option<String>,
     },
 
     /// Open the GUI to explore an archive
@@ -165,7 +168,7 @@ fn main() -> anyhow::Result<()> {
                 error!("Unrecognized format");
             }
         }
-        Cmd::Id { pth } => {
+        Cmd::Id { pth, fmt } => {
             let pth = PathBuf::from(pth);
             let pth = std::fs::canonicalize(pth)?;
 
@@ -174,7 +177,7 @@ fn main() -> anyhow::Result<()> {
                 return Ok(());
             }
 
-            if let Some(f) = genericfs::generic_fs::try_open(&pth, None) {
+            if let Some(f) = genericfs::generic_fs::try_open(&pth, fmt.as_ref()) {
                 info!("Found a {} file", f.name());
             } else {
                 error!("Unrecognized format");
