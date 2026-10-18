@@ -17,7 +17,6 @@ pub struct AutoUnpackFs {
     pub container: Box<dyn genericfs::generic_fs::GenFS>,
     pub id: u64,
     pub inode_look: BTreeMap<(u64, String), InodeState>,
-    pub anti_hang: Instant,
 }
 
 impl AutoUnpackFs {
@@ -211,8 +210,6 @@ impl Filesystem for AutoUnpackFs {
             println!("[{}] readdir ino={ino} off={offset}", self.base_path);
         }
 
-        self.anti_hang = Instant::now();
-
         let parent = if ino == 1 {
             1
         } else {
@@ -294,11 +291,6 @@ impl Filesystem for AutoUnpackFs {
     ) {
         if VERBOSE_LOG_READ {
             info!("read ino={ino}, {:?}, offset={offset}", _req);
-        }
-        if Instant::now().duration_since(self.anti_hang) > Duration::from_secs(30) {
-            println!("ANTI HANG");
-            reply.error(0);
-            return;
         }
 
         let ((_parent, _path), i) = self
