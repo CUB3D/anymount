@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 default = ["with-fuse"]
-with-fuse = ["fuse", "time", "libc"]
+with-fuse = ["fuse", "time", "libc", "ctrlc"]
 
 [dependencies]
 time = { version = "=0.1.45", optional = true } # old because fuse
@@ -21,6 +21,7 @@ progression = "=0.1.15"
 iced = { version = "=0.14.0", default-features = false, features = ["x11", "wayland", "wgpu", "tiny-skia", "smol"]}
 rfd = { version = "=0.17.2", }
 libc = { version = "=0.2.189", optional = true }
+ctrlc = { version = "=3.5.2", optional = true }
 
 [target.'cfg(target_os="linux")'.dependencies]
 fuse = { version = "=0.3.1", optional = true }

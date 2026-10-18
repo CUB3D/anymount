@@ -6,7 +6,7 @@ use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
@@ -104,7 +104,7 @@ fn main() -> anyhow::Result<()> {
     match args.cmd {
         #[cfg(all(target_os = "linux", feature = "with-fuse"))]
         Cmd::Mnt { pth: path_to_mount_to, src: file_to_mount } => {
-            if !std::path::Path::new(&file_to_mount).is_file() {
+            if !Path::new(&file_to_mount).is_file() {
                 error!("The file you are trying to mount isn't a file!");
                 return Ok(());
             }
@@ -112,20 +112,38 @@ fn main() -> anyhow::Result<()> {
                 error!("The path you are trying to mount to isn't a directory!");
                 return Ok(());
             }
-            
-            use std::io::Read;
-            std::thread::spawn(move || {
+
+            // Do this first so it doesn't also have the signal handler
+            let t = std::thread::spawn(move || {
                 fuse::fuse_mnt::fuse_mount(path_to_mount_to, file_to_mount);
             });
 
-            loop {
-                let mut buf = [0u8; 1];
-                std::io::stdin().read_exact(&mut buf)?;
-                if buf[0] == b'a' {
-                    break;
+            // Scan our child processes mounts, look for any fuse ones and abort them so we don't hang
+            ctrlc::set_handler(move || {
+                for task in std::fs::read_dir("/proc/self/task").unwrap() {
+                    let task = task.unwrap();
+
+                    if task.file_name().to_string_lossy().contains(&format!("{}", unsafe { libc::getpid()})) {
+                        continue;
+                    }
+
+                    debug!("{}", task.path().display());
+
+                    let mi = std::fs::read_to_string(task.path().join("./mountinfo")).unwrap();
+
+                    debug!("{}", mi);
+
+                    let m = mi.lines().filter(|f| f.contains("- fuse /dev/fuse")).collect::<Vec<_>>();
+                    for m in m {
+                        debug!("-- {}", m);
+                        let x = m.split(" ").nth(2).unwrap().to_string();
+                        let num = x.split(":").nth(1).unwrap().to_string();
+                        std::fs::write(PathBuf::from("/sys/fs/fuse/connections/").join(num).join("./abort"), b"1\n").unwrap();
+                    }
                 }
-                println!("---");
-            }
+            }).context("Failed to set handler")?;
+
+            t.join().unwrap();
         }
         Cmd::Formats => {
             for f in genericfs::generic_fs::FORMATS {
