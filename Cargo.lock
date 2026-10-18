@@ -187,6 +187,7 @@ dependencies = [
  "fuse",
  "genericfs",
  "iced",
+ "libc",
  "progression",
  "rfd",
  "time 0.1.45",

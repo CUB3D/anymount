@@ -93,7 +93,7 @@ pub mod tests {
 
     #[test]
     pub fn basic() {
-        let f = MappedFile::open("./tests/empty.tar");
+        let f = MappedFile::open("./tests/empty.tar").unwrap();
         let fref = f.get_ref();
         super::TarFile::sniff(&fref.mmap).unwrap();
         super::TarFile::try_open_internal(&fref).unwrap();

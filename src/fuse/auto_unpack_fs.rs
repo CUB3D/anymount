@@ -60,7 +60,7 @@ impl Filesystem for AutoUnpackFs {
             if VERBOSE_LOG {
                 println!("look Not here");
             }
-            reply.error(0);
+            reply.error(libc::ENOENT);
         }
     }
 
@@ -115,7 +115,7 @@ impl Filesystem for AutoUnpackFs {
                 },
             );
         } else {
-            reply.error(0);
+            reply.error(libc::ENOENT);
         }
     }
     fn opendir(&mut self, _req: &Request, _ino: u64, _flags: u32, reply: ReplyOpen) {
@@ -291,7 +291,7 @@ impl Filesystem for AutoUnpackFs {
 
         let sz = f.read(&mut buf);
         if sz == 0 {
-            reply.error(0);
+            reply.error(libc::EOF);
         } else {
             let buf = &buf[..sz as usize];
             reply.data(buf);

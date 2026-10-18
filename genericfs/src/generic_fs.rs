@@ -207,6 +207,7 @@ pub fn try_open_mem(f: MappedFile, format: Option<&String>) -> Option<Box<dyn Ge
     None
 }
 
+//TODO: result here?
 pub fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenFS>> {
     if let Ok(meta) = std::fs::metadata(p)
         && meta.size() > 1024 * 1024 * 1024 * 2
@@ -219,7 +220,7 @@ pub fn try_open(p: &Path, format: Option<&String>) -> Option<Box<dyn GenFS>> {
         return None;
     }
 
-    let f = MappedFile::open(p);
+    let f = MappedFile::open(p).ok()?;
 
     try_open_mem(f, format)
 }
