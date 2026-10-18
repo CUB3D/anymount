@@ -8,7 +8,6 @@ use memmap2::Mmap;
 use std::fmt::{Debug, Formatter};
 use std::{fs::File, io::Read};
 use tar::Archive;
-use tracing::debug;
 
 pub struct TarFile {
     pub tar: ::tar::Archive<File>,
@@ -39,11 +38,15 @@ impl GenFS for TarFile {
         let mut x = Vec::new();
         for b in a.entries()? {
             let mut b = b?;
+
+            // We only care about files
+            if b.header().entry_type().is_dir() {
+                continue;
+            }
+
+            let name = b.path()?.to_string_lossy().to_string();
             let mut d = Vec::new();
             b.read_to_end(&mut d)?;
-
-            let name = b.path()?.file_name().unwrap().to_string_lossy().to_string();
-            debug!("tar: {}", name);
             x.push(BufGenItm::new(name, d));
         }
 

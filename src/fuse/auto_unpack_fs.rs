@@ -8,17 +8,91 @@ use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::io::{Seek, SeekFrom};
 use std::path::PathBuf;
-use std::str::FromStr;
 use std::time::{Duration, Instant};
 use time::Timespec;
 use tracing::{info, warn};
 
 pub struct AutoUnpackFs {
     pub base_path: String,
-    pub cont: Box<dyn genericfs::generic_fs::GenFS>,
+    pub container: Box<dyn genericfs::generic_fs::GenFS>,
     pub id: u64,
     pub inode_look: BTreeMap<(u64, String), InodeState>,
     pub anti_hang: Instant,
+}
+
+impl AutoUnpackFs {
+    fn lookup_or_create_entry(&mut self, parent: u64, name: &str) -> u64 {
+        if let Some(i) = self.inode_look.get(&(parent, name.to_string())) {
+            return i.id;
+        }
+
+        let id = self.id;
+        self.id += 1;
+        self.inode_look.insert(
+            (parent, name.to_string()),
+            InodeState {
+                kind: FileType::Directory,
+                size: 0,
+                id,
+                name: name.to_string(),
+                f: None,
+            },
+        );
+        id
+    }
+
+    pub fn build_dir_tree(&mut self) {
+        loop {
+            let f = match self.container.next_itm() {
+                Ok(Some(f)) => f,
+                Ok(None) => break,
+                Err(e) => {
+                    warn!("Failed to read next item: {e}");
+                    break;
+                }
+            };
+
+            let raw_name = f.name();
+            let parts = raw_name
+                .split('/')
+                .collect::<Vec<_>>();
+
+
+            if let Some((name, dirs)) = parts.split_last() {
+                let mut parent = 1;
+
+                // Create the child dirs
+                for d in dirs {
+                    parent = self.lookup_or_create_entry(parent, d);
+                }
+
+                // Create the file
+                let size = f.size();
+                self.inode_look.insert(
+                    (parent, name.to_string()),
+                    InodeState {
+                        kind: FileType::RegularFile,
+                        size,
+                        id: self.id,
+                        name: name.to_string(),
+                        f: Some(f),
+                    },
+                );
+                self.id += 1;
+
+                self.lookup_or_create_entry(parent, &format!("_{name}"));
+
+                let parent_path = dirs.join("/");
+                let (dst, src) = if parent_path.is_empty() {
+                    (format!("{}/_{}", self.base_path, name), format!("{}/{}", self.base_path, name))
+                } else {
+                    (format!("{}/{}/_{}", self.base_path, parent_path, name), format!("{}/{}/{}", self.base_path, parent_path, name))
+                };
+
+                crate::fuse::fuse_mnt::wait_and_mount(PathBuf::from(dst), PathBuf::from(src));
+            }
+        }
+    }
 }
 
 impl Filesystem for AutoUnpackFs {
@@ -64,17 +138,17 @@ impl Filesystem for AutoUnpackFs {
         }
     }
 
-    fn getattr(&mut self, _req: &Request, _ino: u64, reply: ReplyAttr) {
+    fn getattr(&mut self, _req: &Request, ino: u64, reply: ReplyAttr) {
         if VERBOSE_LOG {
-            println!("[{}] getattr _ino={_ino}", self.base_path);
+            println!("[{}] getattr _ino={ino}", self.base_path);
         }
 
-        if _ino == 1 || _ino == 2 {
+        if ino == 1 || ino == 2 {
             let t = Timespec::new(1, 0);
             reply.attr(
                 &t,
                 &FileAttr {
-                    ino: _ino,
+                    ino,
                     size: 0x1000,
                     blocks: 1,
                     atime: t,
@@ -90,7 +164,7 @@ impl Filesystem for AutoUnpackFs {
                     flags: 0,
                 },
             );
-        } else if let Some((_, i)) = self.inode_look.iter().find(|(_a, b)| b.id == _ino) {
+        } else if let Some((_, i)) = self.inode_look.iter().find(|(_a, b)| b.id == ino) {
             // if VERBOSE_LOG {
             //     println!("[{}] ga got {:?}", self.base_path, i);
             // }
@@ -128,95 +202,45 @@ impl Filesystem for AutoUnpackFs {
     fn readdir(
         &mut self,
         _req: &Request,
-        _ino: u64,
+        ino: u64,
         _fh: u64,
-        _offset: i64,
+        offset: i64,
         mut reply: ReplyDirectory,
     ) {
         if VERBOSE_LOG {
-            println!("[{}] readdir ino={_ino} off={_offset}", self.base_path);
+            println!("[{}] readdir ino={ino} off={offset}", self.base_path);
         }
 
         self.anti_hang = Instant::now();
 
-        if _ino == 1 && _offset == 0 {
-            reply.add(1, 2, FileType::RegularFile, ".");
-            reply.add(2, 3, FileType::RegularFile, "..");
-
-            if !self.inode_look.is_empty() {
-                for ((_pid, _ino), i) in &self.inode_look {
-                    reply.add(i.id, (i.id + 1) as _, i.kind, i.name.clone());
-                }
-            } else {
-                while let Ok(Some(f)) = self.cont.next_itm() {
-                    let name = f.name();
-                    let s = f.size();
-
-                    if name.contains("/") {
-                        warn!("Currently mount can't do dirs");
-                        continue;
-                    }
-
-                    info!("Adding {name}");
-
-                    reply.add(
-                        self.id,
-                        (self.id + 1) as _,
-                        FileType::RegularFile,
-                        name.clone(),
-                    );
-                    self.inode_look.insert(
-                        (_ino, name.clone()),
-                        InodeState {
-                            kind: FileType::RegularFile,
-                            size: s,
-                            id: self.id,
-                            name: name.clone(),
-                            f: Some(f),
-                        },
-                    );
-                    self.id += 1;
-
-                    reply.add(
-                        self.id,
-                        (self.id + 1) as _,
-                        FileType::Directory,
-                        format!("_{name}"),
-                    );
-                    self.inode_look.insert(
-                        (_ino, format!("_{name}").clone()),
-                        InodeState {
-                            kind: FileType::Directory,
-                            size: s,
-                            id: self.id,
-                            name: format!("_{name}"),
-                            f: None,
-                        },
-                    );
-                    self.id += 1;
-
-                    crate::fuse::fuse_mnt::wait_and_mount(
-                        PathBuf::from_str(&format!("{}/_{name}", self.base_path)).unwrap(),
-                        PathBuf::from_str(&format!("{}/{name}", self.base_path)).unwrap(),
-                    );
-                }
-            }
-
-            reply.ok();
+        let parent = if ino == 1 {
+            1
         } else {
-            // let e = self.inode_look.iter().find(|(_k, v)| v.id == _ino).unwrap();
-            // println!("{:?}", e.0);
+            self.inode_look
+                .iter()
+                .find(|((_, _), i)| i.id == ino)
+                .map(|((p, _), _)| *p)
+                .unwrap_or(1)
+        };
 
-            if _offset == 0 {
-                println!("{_ino} is a nest?");
-                reply.add(_ino, (_ino + 1) as _, FileType::RegularFile, ".");
-                // self.id += 1;
-                reply.add(1, 10, FileType::RegularFile, "..");
-                // self.id += 1;
+        let mut entries = Vec::new();
+        entries.push((ino, FileType::Directory, ".".to_string()));
+        entries.push((parent, FileType::Directory, "..".to_string()));
+
+        for ((p, _), i) in &self.inode_look {
+            if *p == ino {
+                entries.push((i.id, i.kind, i.name.clone()));
             }
-
-            reply.ok();
         }
+
+        let offset = offset.max(0) as usize;
+        for (idx, (ino, kind, name)) in entries.iter().enumerate().skip(offset) {
+            if reply.add(*ino, (idx + 1) as i64, *kind, name) {
+                break;
+            }
+        }
+
+        reply.ok();
     }
 
     fn listxattr(&mut self, _req: &Request, _ino: u64, _size: u32, reply: ReplyXattr) {
@@ -236,14 +260,14 @@ impl Filesystem for AutoUnpackFs {
         reply.error(38);
     }
 
-    fn open(&mut self, _req: &Request, _ino: u64, _flags: u32, reply: ReplyOpen) {
-        println!("open ino={_ino}, {:?}", _req);
-        let ((_parent, _path), _i) = self.inode_look.iter().find(|(_a, i)| i.id == _ino).unwrap();
+    fn open(&mut self, _req: &Request, ino: u64, flags: u32, reply: ReplyOpen) {
+        println!("open ino={ino}, {:?}", _req);
+        let ((_parent, _path), _i) = self.inode_look.iter().find(|(_a, i)| i.id == ino).unwrap();
         println!("{:?}", _path);
 
         self.id += 1;
 
-        reply.opened(self.id, _flags);
+        reply.opened(self.id, flags);
     }
 
     fn release(
@@ -262,14 +286,14 @@ impl Filesystem for AutoUnpackFs {
     fn read(
         &mut self,
         _req: &Request,
-        _ino: u64,
+        ino: u64,
         _fh: u64,
         offset: i64,
-        _size: u32,
+        size: u32,
         reply: ReplyData,
     ) {
         if VERBOSE_LOG_READ {
-            info!("read ino={_ino}, {:?}, offset={offset}", _req);
+            info!("read ino={ino}, {:?}, offset={offset}", _req);
         }
         if Instant::now().duration_since(self.anti_hang) > Duration::from_secs(30) {
             println!("ANTI HANG");
@@ -280,14 +304,14 @@ impl Filesystem for AutoUnpackFs {
         let ((_parent, _path), i) = self
             .inode_look
             .iter_mut()
-            .find(|(_a, i)| i.id == _ino)
+            .find(|(_a, i)| i.id == ino)
             .unwrap();
 
         let f = i.f.as_mut().unwrap();
 
         f.seek(SeekFrom::Start(offset as _)).unwrap();
 
-        let mut buf = vec![0; _size as usize];
+        let mut buf = vec![0; size as usize];
 
         let sz = f.read(&mut buf);
         if sz == 0 {

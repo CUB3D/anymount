@@ -11,18 +11,19 @@ pub fn fuse_mount(path_to_mount_to: String, file_to_mount: String) {
     let z = genericfs::generic_fs::try_open(std::path::Path::new(&file_to_mount), None)
         .expect("Can't mount this");
 
-    let a = AutoUnpackFs {
+    let mut a = AutoUnpackFs {
         base_path: std::path::absolute(std::path::Path::new(&path_to_mount_to))
             .expect("Can't get absolute path")
             .to_string_lossy()
             .to_string(),
-        cont: z,
+        container: z,
         id: 3,
         inode_look: Default::default(),
         anti_hang: Instant::now(),
     };
+    a.build_dir_tree();
 
-    info!("mounting {} on {}", a.cont.name(), path_to_mount_to);
+    info!("mounting {} on {}", a.container.name(), path_to_mount_to);
 
     fuse::mount(
         a,
@@ -46,25 +47,22 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
     if !RECURSIVE_MNT {
         return;
     }
-    std::thread::spawn(move || {
+    thread::spawn(move || {
         while !pp.exists() {
             println!("D {}, pp={}", src.display(), pp.display());
             println!("Waiting");
         }
 
-        thread::sleep(Duration::from_secs(
-            (1 + pp.file_name().unwrap().len() / 3) as u64,
-        ));
-
         loop {
             if let Some(gc) = genericfs::generic_fs::try_open(&src, None) {
-                let a = AutoUnpackFs {
+                let mut a = AutoUnpackFs {
                     base_path: pp.to_string_lossy().to_string(),
                     inode_look: Default::default(),
                     id: 3,
-                    cont: gc,
+                    container: gc,
                     anti_hang: Instant::now(),
                 };
+                a.build_dir_tree();
 
                 if fuse::mount(
                     a,
@@ -72,7 +70,7 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
                     &[
                         OsStr::new("-o"),
                         OsStr::new("allow_other"),
-                        // OsStr::new("-o"), OsStr::new("auto_unmount"),
+                        OsStr::new("-o"), OsStr::new("auto_unmount"),
                         OsStr::new("-o"),
                         OsStr::new("rootmode=777"),
                         OsStr::new("-o"),
@@ -87,7 +85,6 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
                 {
                     break;
                 }
-                // println!("Trying again");
             }
         }
     });

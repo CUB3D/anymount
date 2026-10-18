@@ -1,9 +1,17 @@
 use std::io::{Seek, SeekFrom};
 
 /// A Generic Item that can be accessed like a file-ish
+/// Note that this always represents a leaf file. Directories are implied by the name
 pub trait GenItem: Seek {
+    /// Return the name of this file
+    /// If the file is contained in a subdirectory, this will contain the full path to this file
     fn name(&self) -> String;
+
+    /// Get the size of this file in bytes
     fn size(&self) -> u64;
+
+    /// Read into `buf` from the current position in this file.
+    /// Returns the number of bytes read, value of 0 implies EOF
     fn read(&mut self, buf: &mut [u8]) -> u64;
 
     fn read_to_vec(&mut self) -> Vec<u8> {
