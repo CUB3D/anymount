@@ -19,7 +19,7 @@ impl MappedFile {
     }
 
     pub fn from_file(fmap_file: File) -> Self {
-        let fmap = unsafe { Mmap::map(&fmap_file) }.unwrap();
+        let fmap = unsafe { Mmap::map(&fmap_file) }.expect("Failed to mmap file");
         Self { fmap_file, fmap }
     }
 

@@ -15,6 +15,11 @@ Installing:
 cargo +stable install --locked --git https://github.com/CUB3D/anymount anymount
 ```
 
+Requires FUSE by default, but this can be disabled if you don't have `libfuse2-dev` or equivalent:
+```shell
+cargo build --no-default-features
+```
+
 Usage:
 ```shell
 # List/id a file

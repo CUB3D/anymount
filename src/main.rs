@@ -35,7 +35,7 @@ struct ExtCmd {
 #[derive(Debug, Subcommand)]
 enum Cmd {
     /// Mount the given file with FUSE
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", feature = "with-fuse"))]
     Mnt {
         /// The file to open
         #[clap(required = true)]
@@ -91,7 +91,10 @@ fn main() -> anyhow::Result<()> {
     // If that fails then reparse as long which will fail and print help
     let args = Args::try_parse();
     let args = args.unwrap_or_else(|_| match ExtCmd::try_parse() {
-        Ok(v) => Args { cmd: Cmd::Ext(v) },
+        Ok(v) => {
+            info!("No subcommand, assuming 'extract {}'", v.input_path);
+            Args { cmd: Cmd::Ext(v) }
+        },
         Err(_) => {
             Args::parse();
             unreachable!();
@@ -99,7 +102,7 @@ fn main() -> anyhow::Result<()> {
     });
 
     match args.cmd {
-        #[cfg(target_os = "linux")]
+        #[cfg(all(target_os = "linux", feature = "with-fuse"))]
         Cmd::Mnt { pth, src } => {
             use std::io::Read;
             std::thread::spawn(move || {
@@ -138,7 +141,7 @@ fn main() -> anyhow::Result<()> {
         Cmd::Ext(ext) => {
             let (pth, fmt, out) = (ext.input_path, ext.format_override, ext.out_path);
             let pth = PathBuf::from(pth);
-            let pth = std::fs::canonicalize(pth)?;
+            let pth = std::fs::canonicalize(pth).context("Failed to gen canonical path")?;
 
             if !pth.exists() {
                 error!("Src file not found");
@@ -280,6 +283,6 @@ pub fn extract_file(
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", feature = "with-fuse"))]
 mod fuse;
 pub mod gui;

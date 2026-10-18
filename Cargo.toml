@@ -3,8 +3,12 @@ name = "anymount"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["with-fuse"]
+with-fuse = ["fuse", "time"]
+
 [dependencies]
-time = "=0.1.45" # old because fuse
+time = { version = "=0.1.45", optional = true } # old because fuse
 
 
 genericfs = { path = "./genericfs"}
@@ -18,7 +22,7 @@ iced = { version = "=0.14.0", default-features = false, features = ["x11", "wayl
 rfd = { version = "=0.17.2", }
 
 [target.'cfg(target_os="linux")'.dependencies]
-fuse = "=0.3.1"
+fuse = { version = "=0.3.1", optional = true }
 
 [profile.dev.package."*"]
 # Set the default for dependencies in Development mode.

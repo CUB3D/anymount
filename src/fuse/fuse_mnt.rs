@@ -13,7 +13,7 @@ pub fn fuse_mount(pth: String, src: String) {
 
     let a = AutoUnpackFs {
         base_path: std::path::absolute(std::path::Path::new(&pth))
-            .unwrap()
+            .expect("Can't get absolute path")
             .to_string_lossy()
             .to_string(),
         cont: z,
@@ -39,7 +39,7 @@ pub fn fuse_mount(pth: String, src: String) {
             OsStr::new("max_read=0"),
         ],
     )
-    .unwrap()
+    .expect("Failed to fuse mount")
 }
 
 pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
