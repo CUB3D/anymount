@@ -68,11 +68,7 @@ impl GenFS for TarFile {
             .get(..5)
             .ok_or_else(|| anyhow::anyhow!("Not enough data"))?;
 
-        if hdr != [0x75, 0x73, 0x74, 0x61, 0x72] {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(hdr == [0x75, 0x73, 0x74, 0x61, 0x72])
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

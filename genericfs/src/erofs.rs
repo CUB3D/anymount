@@ -110,18 +110,9 @@ impl GenFS for ErofsF {
         Self: Sized,
     {
         let hdr = f
-            .get(1024..)
-            .ok_or_else(|| anyhow::anyhow!("Not enough data"))?;
-
-        let hdr = hdr
-            .get(..4)
-            .ok_or_else(|| anyhow::anyhow!("Not enough data"))?;
-
-        if hdr != 0xE0F5E1E2_u32.to_le_bytes() {
-            return Ok(false);
-        }
-
-        Ok(true)
+            .get(1024..);
+        let hdr = hdr.and_then(|h| h.get(..4));
+        Ok(hdr == Some(&0xE0F5E1E2_u32.to_le_bytes()))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

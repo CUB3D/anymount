@@ -46,9 +46,11 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
         return;
     }
     thread::spawn(move || {
+        // Wait for target dir to exist
         while !pp.exists() {
-            println!("D {}, pp={}", src.display(), pp.display());
-            println!("Waiting");
+            // println!("D {}, pp={}", src.display(), pp.display());
+            // println!("Waiting");
+            thread::sleep(std::time::Duration::from_millis(100));
         }
 
         let mut tries = 0;
@@ -86,6 +88,7 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
                 }
             }
             tries += 1;
+            thread::sleep(std::time::Duration::from_millis(100));
         }
     });
 }
