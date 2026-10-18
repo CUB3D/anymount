@@ -7,12 +7,12 @@ use std::thread;
 use std::time::{Duration, Instant};
 use tracing::info;
 
-pub fn fuse_mount(pth: String, src: String) {
-    let z = genericfs::generic_fs::try_open(std::path::Path::new(&src), None)
+pub fn fuse_mount(path_to_mount_to: String, file_to_mount: String) {
+    let z = genericfs::generic_fs::try_open(std::path::Path::new(&file_to_mount), None)
         .expect("Can't mount this");
 
     let a = AutoUnpackFs {
-        base_path: std::path::absolute(std::path::Path::new(&pth))
+        base_path: std::path::absolute(std::path::Path::new(&path_to_mount_to))
             .expect("Can't get absolute path")
             .to_string_lossy()
             .to_string(),
@@ -22,15 +22,15 @@ pub fn fuse_mount(pth: String, src: String) {
         anti_hang: Instant::now(),
     };
 
-    info!("mounting {} on {}", a.cont.name(), pth);
+    info!("mounting {} on {}", a.cont.name(), path_to_mount_to);
 
     fuse::mount(
         a,
-        &PathBuf::from_str(&pth).unwrap(),
+        &PathBuf::from_str(&path_to_mount_to).unwrap(),
         &[
             OsStr::new("-o"),
             OsStr::new("allow_other"),
-            // OsStr::new("-o"), OsStr::new("auto_unmount"),
+            OsStr::new("-o"), OsStr::new("auto_unmount"),
             OsStr::new("-o"),
             OsStr::new("rootmode=777"),
             OsStr::new("-o"),

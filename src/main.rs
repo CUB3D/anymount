@@ -103,10 +103,19 @@ fn main() -> anyhow::Result<()> {
 
     match args.cmd {
         #[cfg(all(target_os = "linux", feature = "with-fuse"))]
-        Cmd::Mnt { pth, src } => {
+        Cmd::Mnt { pth: path_to_mount_to, src: file_to_mount } => {
+            if !std::path::Path::new(&file_to_mount).is_file() {
+                error!("The file you are trying to mount isn't a file!");
+                return Ok(());
+            }
+            if !Path::new(&path_to_mount_to).is_dir() {
+                error!("The path you are trying to mount to isn't a directory!");
+                return Ok(());
+            }
+            
             use std::io::Read;
             std::thread::spawn(move || {
-                fuse::fuse_mnt::fuse_mount(pth, src);
+                fuse::fuse_mnt::fuse_mount(path_to_mount_to, file_to_mount);
             });
 
             loop {
