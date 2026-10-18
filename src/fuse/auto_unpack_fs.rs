@@ -8,7 +8,6 @@ use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::io::{Seek, SeekFrom};
 use std::path::PathBuf;
-use std::time::{Duration, Instant};
 use time::Timespec;
 use tracing::{info, warn};
 

@@ -4,7 +4,6 @@ use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::thread;
-use std::time::{Duration, Instant};
 use tracing::info;
 
 pub fn fuse_mount(path_to_mount_to: String, file_to_mount: String) {
@@ -19,7 +18,6 @@ pub fn fuse_mount(path_to_mount_to: String, file_to_mount: String) {
         container: z,
         id: 3,
         inode_look: Default::default(),
-        anti_hang: Instant::now(),
     };
     a.build_dir_tree();
 
@@ -53,14 +51,15 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
             println!("Waiting");
         }
 
-        loop {
+        let mut tries = 0;
+
+        while tries < 100 {
             if let Some(gc) = genericfs::generic_fs::try_open(&src, None) {
                 let mut a = AutoUnpackFs {
                     base_path: pp.to_string_lossy().to_string(),
                     inode_look: Default::default(),
                     id: 3,
                     container: gc,
-                    anti_hang: Instant::now(),
                 };
                 a.build_dir_tree();
 
@@ -81,11 +80,12 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
                         // OsStr::new("-o"), OsStr::new("gid=1000"),
                     ],
                 )
-                .is_ok()
+                    .is_ok()
                 {
                     break;
                 }
             }
+            tries += 1;
         }
     });
 }
