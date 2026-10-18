@@ -242,7 +242,7 @@ impl Filesystem for AutoUnpackFs {
 
     fn listxattr(&mut self, _req: &Request, _ino: u64, _size: u32, reply: ReplyXattr) {
         println!("listx ino={_ino} {:?}", _req);
-        reply.error(38);
+        reply.error(libc::ENOSYS);
     }
 
     fn getxattr(
@@ -254,7 +254,7 @@ impl Filesystem for AutoUnpackFs {
         reply: ReplyXattr,
     ) {
         println!("listx ino={_ino} {:?}", _req);
-        reply.error(38);
+        reply.error(libc::ENOSYS);
     }
 
     fn open(&mut self, _req: &Request, ino: u64, flags: u32, reply: ReplyOpen) {
