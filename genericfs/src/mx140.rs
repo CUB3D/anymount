@@ -2,7 +2,7 @@
 
 use parse::{le_u32, take};
 use std::collections::HashMap;
-
+use memmap2::Mmap;
 use crate::file_ref::FileRef;
 use crate::generic_fs_props::GenFSProps;
 use crate::{
@@ -20,13 +20,8 @@ impl GenFSProps for Mx140F {
     const FORMAT_NAME: &'static str = "mx140";
 }
 
-impl GenFS for Mx140F {
-    fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
-    where
-        Self: Sized,
-    {
-        let v = f.mmap;
-
+impl Mx140F {
+    pub fn from_mmap(v: &Mmap) -> anyhow::Result<Self> {
         let (mut j, _i) = take(v, 8)?;
         let mut o = Vec::new();
         loop {
@@ -51,6 +46,22 @@ impl GenFS for Mx140F {
         }
 
         Ok(Self { t: o, idx: 0 })
+    }
+}
+
+impl GenFS for Mx140F {
+    fn try_open_internal(f: &FileRef) -> anyhow::Result<Self>
+    where
+        Self: Sized,
+    {
+        Self::from_mmap(&f.mmap)
+    }
+
+    fn sniff(f: &Mmap) -> anyhow::Result<bool>
+    where
+        Self: Sized,
+    {
+        Ok(Self::from_mmap(f).is_ok())
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

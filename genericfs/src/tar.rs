@@ -61,14 +61,9 @@ impl GenFS for TarFile {
     where
         Self: Sized,
     {
-        let hdr = f
-            .get(257..)
-            .ok_or_else(|| anyhow::anyhow!("Not enough data"))?;
-        let hdr = hdr
-            .get(..5)
-            .ok_or_else(|| anyhow::anyhow!("Not enough data"))?;
-
-        Ok(hdr == [0x75, 0x73, 0x74, 0x61, 0x72])
+        let hdr = f.get(257..);
+        let hdr = hdr.and_then(|h| h.get(..5));
+        Ok(hdr == Some(&[0x75, 0x73, 0x74, 0x61, 0x72]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

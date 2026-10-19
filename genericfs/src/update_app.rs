@@ -37,11 +37,8 @@ impl GenFS for UpdateAppF {
     where
         Self: Sized,
     {
-        let (_i, magic) = take_arr::<4>(f)?;
-        if magic != [0x55, 0xaa, 0x5a, 0xa5] {
-            return Ok(false);
-        }
-        Ok(true)
+        let magic = f.get(..4);
+        Ok(magic == Some(&[0x55, 0xaa, 0x5a, 0xa5]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

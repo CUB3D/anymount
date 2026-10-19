@@ -2,7 +2,6 @@
 
 use arcbox_ext4::Reader;
 use memmap2::Mmap;
-use parse::{le_u16, take_arr};
 use std::os::unix::io::AsRawFd;
 use std::path::PathBuf;
 
@@ -73,10 +72,10 @@ impl GenFS for Ext4F {
     where
         Self: Sized,
     {
-        let (i, _) = take_arr::<1024>(f)?;
-        let (i, _) = take_arr::<56>(i)?;
-        let (_, magic) = le_u16(i)?;
-        Ok(magic == 0xEF53)
+        let hdr = f.get(1024..);
+        let hdr = hdr.and_then(|h| h.get(56..));
+        let magic = hdr.and_then(|h| h.get(..2));
+        Ok(magic == Some(&[0x53, 0xEF]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

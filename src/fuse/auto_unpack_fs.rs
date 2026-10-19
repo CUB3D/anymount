@@ -257,7 +257,9 @@ impl Filesystem for AutoUnpackFs {
     }
 
     fn open(&mut self, _req: &Request, ino: u64, flags: u32, reply: ReplyOpen) {
-        println!("open ino={ino}, {:?}", _req);
+        if VERBOSE_LOG {
+            println!("open ino={ino}, {:?}", _req);
+        }
         let ((_parent, _path), _i) = self.inode_look.iter().find(|(_a, i)| i.id == ino).unwrap();
         println!("{:?}", _path);
 

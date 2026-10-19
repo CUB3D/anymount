@@ -87,20 +87,8 @@ impl GenFS for LinuzZImgF {
     where
         Self: Sized,
     {
-        let hdr = f
-            .get(..16)
-            .ok_or_else(|| anyhow::anyhow!("Not enough data"))?;
-
-        if hdr
-            != [
-                0x00, 0x00, 0xA0, 0xE1, 0x00, 0x00, 0xA0, 0xE1, 0x00, 0x00, 0xA0, 0xE1, 0x00, 0x00,
-                0xA0, 0xE1,
-            ]
-        {
-            return Ok(false);
-        }
-
-        Ok(true)
+        let hdr = f.get(..16);
+        Ok(hdr == Some(&[0x00, 0x00, 0xA0, 0xE1, 0x00, 0x00, 0xA0, 0xE1, 0x00, 0x00, 0xA0, 0xE1, 0x00, 0x00, 0xA0, 0xE1]))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {

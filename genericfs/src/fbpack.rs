@@ -165,16 +165,16 @@ impl GenFS for FbpackF {
     where
         Self: Sized,
     {
+        if f.len() < 8 {
+            return Ok(false);
+        }
+
         let (i, magic) = le_u32(f)?;
         let (_i, version) = le_u32(i)?;
 
         // FBPK
         //TODO: bootldr format
-        if magic == 0x4b504246 && (version == 1 || version == 2) {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
+        Ok(magic == 0x4b504246 && (version == 1 || version == 2))
     }
 
     fn next_itm(&mut self) -> anyhow::Result<Option<Box<dyn GenItem>>> {
