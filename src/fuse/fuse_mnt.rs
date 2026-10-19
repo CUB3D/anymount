@@ -1,6 +1,6 @@
 use crate::fuse::RECURSIVE_MNT;
 use crate::fuse::auto_unpack_fs::AutoUnpackFs;
-use std::ffi::OsStr;
+use fuser::{Config, MountOption, SessionACL};
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::thread;
@@ -10,35 +10,25 @@ pub fn fuse_mount(path_to_mount_to: String, file_to_mount: String) {
     let z = genericfs::generic_fs::try_open(std::path::Path::new(&file_to_mount), None)
         .expect("Can't mount this");
 
-    let mut a = AutoUnpackFs {
-        base_path: std::path::absolute(std::path::Path::new(&path_to_mount_to))
-            .expect("Can't get absolute path")
-            .to_string_lossy()
-            .to_string(),
-        container: z,
-        id: 3,
-        inode_look: Default::default(),
-    };
-    a.build_dir_tree();
+    let base_path = std::path::absolute(std::path::Path::new(&path_to_mount_to))
+        .expect("Can't get absolute path")
+        .to_string_lossy()
+        .to_string();
 
-    info!("mounting {} on {}", a.container.name(), path_to_mount_to);
+    info!("mounting {} on {path_to_mount_to}", z.name());
 
-    fuse::mount(
-        a,
-        &PathBuf::from_str(&path_to_mount_to).unwrap(),
-        &[
-            OsStr::new("-o"),
-            OsStr::new("allow_other"),
-            OsStr::new("-o"), OsStr::new("auto_unmount"),
-            OsStr::new("-o"),
-            OsStr::new("rootmode=777"),
-            OsStr::new("-o"),
-            OsStr::new("kernel_cache"),
-            OsStr::new("-o"),
-            OsStr::new("max_read=0"),
-        ],
-    )
-    .expect("Failed to fuse mount")
+    let a = AutoUnpackFs::new(base_path, z);
+
+    let mut config = Config::default();
+    config.mount_options = vec![
+        MountOption::AutoUnmount,
+        MountOption::CUSTOM("rootmode=777".to_string()),
+        MountOption::CUSTOM("max_read=0".to_string()),
+    ];
+    config.acl = SessionACL::All;
+
+    fuser::mount(a, PathBuf::from_str(&path_to_mount_to).unwrap(), &config)
+        .expect("Failed to fuse mount")
 }
 
 pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
@@ -57,33 +47,17 @@ pub fn wait_and_mount(pp: PathBuf, src: PathBuf) {
 
         while tries < 100 {
             if let Some(gc) = genericfs::generic_fs::try_open(&src, None) {
-                let mut a = AutoUnpackFs {
-                    base_path: pp.to_string_lossy().to_string(),
-                    inode_look: Default::default(),
-                    id: 3,
-                    container: gc,
-                };
-                a.build_dir_tree();
+                let a = AutoUnpackFs::new(pp.to_string_lossy().to_string(), gc);
 
-                if fuse::mount(
-                    a,
-                    &pp,
-                    &[
-                        OsStr::new("-o"),
-                        OsStr::new("allow_other"),
-                        OsStr::new("-o"), OsStr::new("auto_unmount"),
-                        OsStr::new("-o"),
-                        OsStr::new("rootmode=777"),
-                        OsStr::new("-o"),
-                        OsStr::new("kernel_cache"),
-                        OsStr::new("-o"),
-                        OsStr::new("max_read=0"),
-                        // OsStr::new("-o"), OsStr::new("uid=1000"),
-                        // OsStr::new("-o"), OsStr::new("gid=1000"),
-                    ],
-                )
-                    .is_ok()
-                {
+                let mut config = Config::default();
+                config.mount_options = vec![
+                    MountOption::AutoUnmount,
+                    MountOption::CUSTOM("rootmode=777".to_string()),
+                    MountOption::CUSTOM("max_read=0".to_string()),
+                ];
+                config.acl = SessionACL::All;
+
+                if fuser::mount(a, &pp, &config).is_ok() {
                     break;
                 }
             }

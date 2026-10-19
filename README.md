@@ -6,16 +6,16 @@
 Install dependencies
 ```shell
 # debian/ubuntu/etc
-apt install libfuse-dev pkg-config
+apt install libfuse3-dev pkg-config
 # fedora (ostree)
-rpm-ostree install fuse-devel openssl-devel perl-FindBin perl-IPC-Cmd perl-File-Compare perl-File-Copy perl-Time-Piece
+rpm-ostree install fuse3-devel openssl-devel perl-FindBin perl-IPC-Cmd perl-File-Compare perl-File-Copy perl-Time-Piece
 ```
 Installing:
 ```shell
 cargo +stable install --locked --git https://github.com/CUB3D/anymount anymount
 ```
 
-Requires FUSE by default, but this can be disabled if you don't have `libfuse2-dev` or equivalent:
+Requires FUSE by default, but this can be disabled if you don't have `libfuse3-dev` or equivalent:
 ```shell
 cargo build --no-default-features
 ```

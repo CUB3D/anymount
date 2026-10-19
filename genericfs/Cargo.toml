@@ -5,7 +5,6 @@ edition = "2024"
 
 [dependencies]
 zip = "=8.5.1"
-time = "=0.1.45" # old because fuse
 tar = {  path = "../vendor/tar-rs" }
 lz4_flex = "0.14.0"
 android-sparse = "=0.6.0"

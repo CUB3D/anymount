@@ -94,7 +94,7 @@ fn main() -> anyhow::Result<()> {
         Ok(v) => {
             info!("No subcommand, assuming 'extract {}'", v.input_path);
             Args { cmd: Cmd::Ext(v) }
-        },
+        }
         Err(_) => {
             Args::parse();
             unreachable!();
@@ -103,7 +103,10 @@ fn main() -> anyhow::Result<()> {
 
     match args.cmd {
         #[cfg(all(target_os = "linux", feature = "with-fuse"))]
-        Cmd::Mnt { pth: path_to_mount_to, src: file_to_mount } => {
+        Cmd::Mnt {
+            pth: path_to_mount_to,
+            src: file_to_mount,
+        } => {
             if !Path::new(&file_to_mount).is_file() {
                 error!("The file you are trying to mount isn't a file!");
                 return Ok(());
@@ -123,25 +126,40 @@ fn main() -> anyhow::Result<()> {
                 for task in std::fs::read_dir("/proc/self/task").unwrap() {
                     let task = task.unwrap();
 
-                    if task.file_name().to_string_lossy().contains(&format!("{}", unsafe { libc::getpid()})) {
+                    if task
+                        .file_name()
+                        .to_string_lossy()
+                        .contains(&format!("{}", unsafe { libc::getpid() }))
+                    {
                         continue;
                     }
 
                     debug!("{}", task.path().display());
 
-                    let mi = std::fs::read_to_string(task.path().join("./mountinfo")).unwrap();
+                    //TODO Might not be needed anymore??
+                    if let Ok(mi) = std::fs::read_to_string(task.path().join("./mountinfo")) {
+                        debug!("{}", mi);
 
-                    debug!("{}", mi);
-
-                    let m = mi.lines().filter(|f| f.contains("- fuse /dev/fuse")).collect::<Vec<_>>();
-                    for m in m {
-                        debug!("-- {}", m);
-                        let x = m.split(" ").nth(2).unwrap().to_string();
-                        let num = x.split(":").nth(1).unwrap().to_string();
-                        std::fs::write(PathBuf::from("/sys/fs/fuse/connections/").join(num).join("./abort"), b"1\n").unwrap();
+                        let m = mi
+                            .lines()
+                            .filter(|f| f.contains("- fuse /dev/fuse"))
+                            .collect::<Vec<_>>();
+                        for m in m {
+                            debug!("-- {}", m);
+                            let x = m.split(" ").nth(2).unwrap().to_string();
+                            let num = x.split(":").nth(1).unwrap().to_string();
+                            std::fs::write(
+                                PathBuf::from("/sys/fs/fuse/connections/")
+                                    .join(num)
+                                    .join("./abort"),
+                                b"1\n",
+                            )
+                            .unwrap();
+                        }
                     }
                 }
-            }).context("Failed to set handler")?;
+            })
+            .context("Failed to set handler")?;
 
             t.join().unwrap();
         }

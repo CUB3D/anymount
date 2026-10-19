@@ -1,4 +1,4 @@
-use fuse::FileType;
+use fuser::FileType;
 use genericfs::gen_item::GenItem;
 
 pub struct InodeState {

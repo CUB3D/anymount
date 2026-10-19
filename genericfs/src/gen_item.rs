@@ -2,7 +2,7 @@ use std::io::{Seek, SeekFrom};
 
 /// A Generic Item that can be accessed like a file-ish
 /// Note that this always represents a leaf file. Directories are implied by the name
-pub trait GenItem: Seek {
+pub trait GenItem: Seek + Send {
     /// Return the name of this file
     /// If the file is contained in a subdirectory, this will contain the full path to this file
     fn name(&self) -> String;
