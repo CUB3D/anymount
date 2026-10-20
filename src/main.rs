@@ -144,18 +144,18 @@ fn main() -> anyhow::Result<()> {
                         continue;
                     }
 
-                    debug!("{}", task.path().display());
+                    tracing::debug!("{}", task.path().display());
 
                     //TODO Might not be needed anymore??
                     if let Ok(mi) = std::fs::read_to_string(task.path().join("./mountinfo")) {
-                        debug!("{}", mi);
+                        tracing::debug!("{}", mi);
 
                         let m = mi
                             .lines()
                             .filter(|f| f.contains("- fuse /dev/fuse"))
                             .collect::<Vec<_>>();
                         for m in m {
-                            debug!("-- {}", m);
+                            tracing::debug!("-- {}", m);
                             let x = m.split(" ").nth(2).unwrap().to_string();
                             let num = x.split(":").nth(1).unwrap().to_string();
                             std::fs::write(
