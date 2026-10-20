@@ -7,6 +7,7 @@ use crate::{
     generic_fs::GenFS,
 };
 use memmap2::Mmap;
+use tracing::debug;
 
 pub struct PemCertF {
     pub idx: usize,
@@ -45,7 +46,8 @@ impl GenFS for PemCertF {
         Self: Sized,
     {
         if f.len() as u64 > (i32::MAX) as u64 {
-            return Err(anyhow::anyhow!("Openssl has a 2GB file limit"));
+            debug!("Openssl has a 2GB file limit!");
+            return Ok(false);
         }
         Ok(openssl::x509::X509::from_pem(f).is_ok())
     }

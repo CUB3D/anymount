@@ -6,7 +6,7 @@ use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tracing::{debug, error, info, warn};
+use tracing::{error, info, warn};
 use tracing_subscriber::EnvFilter;
 
 #[derive(Parser, Debug)]
@@ -22,14 +22,21 @@ struct ExtCmd {
     #[clap(required = true)]
     input_path: String,
 
+    /// Force the use of a specific format, useful if it can't be auto detected
     #[clap(required = false, long = "fmt")]
     format_override: Option<String>,
 
+    /// Where to put the output
     #[clap(required = false)]
     out_path: Option<String>,
 
+    /// Should we attempt to extract the files we just extracted
     #[clap(required = false, long, short)]
     recurse: bool,
+
+    /// How deep to recurse, default is as deep as possible
+    #[clap(required = false, long, short)]
+    depth: Option<u64>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -41,6 +48,7 @@ enum Cmd {
         #[clap(required = true)]
         pth: String,
 
+        /// The mountpoint to host the result
         #[clap(required = true)]
         src: String,
     },
@@ -54,6 +62,7 @@ enum Cmd {
         #[clap(required = true)]
         pth: String,
 
+        /// Force the use of a specific format
         #[clap(required = false, long)]
         fmt: Option<String>,
     },
@@ -64,6 +73,7 @@ enum Cmd {
         #[clap(required = true)]
         pth: String,
 
+        /// Force the use of a specific format
         #[clap(required = false, long)]
         fmt: Option<String>,
     },
@@ -196,7 +206,7 @@ fn main() -> anyhow::Result<()> {
             let cur_dir = std::env::current_dir()?;
             let out = out.map(PathBuf::from).unwrap_or(cur_dir.join("_ext"));
 
-            extract_file(&pth, &out, &fmt, ext.recurse)?;
+            extract_file(&pth, &out, &fmt, ext.recurse, ext.depth)?;
         }
         Cmd::Ls { pth, fmt } => {
             let pth = PathBuf::from(pth);
@@ -241,6 +251,7 @@ pub fn extract_file(
     out: &Path,
     fmt: &Option<String>,
     recurse: bool,
+    recurse_depth: Option<u64>,
 ) -> anyhow::Result<()> {
     info!("Extracting {} to {}", pth.display(), out.display());
 
@@ -301,20 +312,35 @@ pub fn extract_file(
     }
 
     if recurse {
-        fn recurse_dir(out: &Path, fmt: &Option<String>, recurse: bool) -> anyhow::Result<()> {
+        // Depth is measured in "extraction" levels not in "directory" levels. So we can reuse next-depth for all children of this extraction.
+        if let Some(remaining_depth) = recurse_depth
+            && remaining_depth == 0
+        {
+            println!("Depth limit reached, not extracting any further");
+            return Ok(());
+        }
+
+        let next_depth = recurse_depth.map(|d| d - 1);
+
+        fn recurse_dir(
+            out: &Path,
+            fmt: &Option<String>,
+            recurse: bool,
+            next_depth: Option<u64>,
+        ) -> anyhow::Result<()> {
             for ent in std::fs::read_dir(out)
                 .context("Failed to read dir")?
                 .flatten()
             {
                 if ent.file_type()?.is_dir() {
-                    recurse_dir(&ent.path(), fmt, recurse)?;
+                    recurse_dir(&ent.path(), fmt, recurse, next_depth)?;
                     continue;
                 }
 
                 let pth = ent.path();
                 let out = out.join(format!("{}_ext", ent.file_name().to_string_lossy()));
 
-                if let Err(e) = extract_file(&pth, &out, fmt, recurse) {
+                if let Err(e) = extract_file(&pth, &out, fmt, recurse, next_depth) {
                     error!("Failed to extract {}, {}", pth.display(), e);
                 }
             }
@@ -322,7 +348,7 @@ pub fn extract_file(
             Ok(())
         }
 
-        recurse_dir(out, fmt, false)?;
+        recurse_dir(out, fmt, false, next_depth)?;
     }
 
     Ok(())

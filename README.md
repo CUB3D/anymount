@@ -6,7 +6,7 @@
 Install dependencies
 ```shell
 # debian/ubuntu/etc
-apt install libfuse3-dev pkg-config
+apt install libfuse3-dev pkg-config protobuf-compiler
 # fedora (ostree)
 rpm-ostree install fuse3-devel openssl-devel perl-FindBin perl-IPC-Cmd perl-File-Compare perl-File-Copy perl-Time-Piece
 ```
