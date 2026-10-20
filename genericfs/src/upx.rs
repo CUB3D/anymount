@@ -10,9 +10,8 @@ use memmap2::Mmap;
 use parse::{le_i32, le_u32, le_u64, ne_u8, take, take_arr, take_vec};
 use rust_lzo::{LZOContext, LZOError};
 
-use aes::cipher::{BlockDecrypt, KeyInit};
 use aes::Aes256;
-use aes::cipher::generic_array::GenericArray;
+use aes::cipher::{BlockCipherDecrypt, KeyInit};
 use tracing::warn;
 
 pub struct UpxF {
@@ -314,7 +313,7 @@ impl GenFS for UpxF {
 
                 let aes = Aes256::new_from_slice(b"sdjJKLJsklaJSLKJDWLZMXNsldjKjalk")?;
                 for c in &mut upx.content[start..][..enc_len].chunks_exact_mut(16) {
-                    aes.decrypt_block(GenericArray::from_mut_slice(c));
+                    aes.decrypt_block(c.try_into().unwrap());
                 }
             }
         }
