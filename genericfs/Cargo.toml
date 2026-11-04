@@ -44,6 +44,7 @@ image4 = "=0.8.2"
 #TODO: no lzma due to apple XAR
 rpm = { version = "=0.30.2", default-features = false, features = ["payload", "gzip-compression", "zstd-compression", "bzip2-compression"] }
 prost = { version = "=0.14.4" }
+goblin = "=0.10.7"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }

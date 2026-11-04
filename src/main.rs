@@ -218,7 +218,7 @@ fn main() -> anyhow::Result<()> {
             }
 
             if let Some(mut f) = genericfs::generic_fs::try_open(&pth, fmt.as_ref()) {
-                info!("Found a {} file", f.name());
+                info!("Found a '{}' file", f.name());
                 while let Ok(Some(fi)) = f.next_itm() {
                     info!("- '{}', {}k", fi.name(), fi.size() >> 12,);
                 }
@@ -236,7 +236,7 @@ fn main() -> anyhow::Result<()> {
             }
 
             if let Some(f) = genericfs::generic_fs::try_open(&pth, fmt.as_ref()) {
-                info!("Found a {} file", f.name());
+                info!("Found a '{}' file", f.name());
             } else {
                 error!("Unrecognized format");
             }
@@ -263,7 +263,7 @@ pub fn extract_file(
             info!("Out already exists");
         }
 
-        info!("Found a {} file", f.name());
+        info!("Found a '{}' file", f.name());
         while let Ok(Some(mut fi)) = f.next_itm() {
             let out2 = out.to_path_buf();
 

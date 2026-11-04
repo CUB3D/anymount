@@ -32,6 +32,7 @@ pub mod mtk_dbginfo;
 pub mod mx140;
 pub mod ohos;
 pub mod pbzx;
+pub mod pe;
 pub mod pem_cert;
 pub mod protbuf_raw;
 pub mod qcom_ptbl;
@@ -64,7 +65,7 @@ pub mod xz;
 pub mod zip;
 // hsp: no libs
 // UBI-flash?
-// EXE resources
 // yaffs2
+// cramfs
 
 // tar uses too much memory, write our own lib

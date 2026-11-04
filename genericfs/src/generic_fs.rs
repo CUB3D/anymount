@@ -26,6 +26,7 @@ use crate::md1img::Md1imgF;
 use crate::mtk_dbginfo::MtkDbgF;
 use crate::ohos::OhosF;
 use crate::pbzx::PbzxF;
+use crate::pe::PeF;
 use crate::pem_cert::PemCertF;
 use crate::protbuf_raw::PBufF;
 use crate::qcow2::Qcow2F;
@@ -131,6 +132,7 @@ pub const FORMATS: &[&dyn GenericFSHelper] = &[
     &GenericFSHelperImpl::<GzipF>::INSTANCE,
     &GenericFSHelperImpl::<BzipF>::INSTANCE,
     &GenericFSHelperImpl::<UpxF>::INSTANCE,
+    &GenericFSHelperImpl::<PeF>::INSTANCE,
     &GenericFSHelperImpl::<PBufF>::INSTANCE,
     &GenericFSHelperImpl::<LinuzZImgF>::INSTANCE,
     &GenericFSHelperImpl::<DtboF>::INSTANCE,

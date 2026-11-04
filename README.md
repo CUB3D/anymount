@@ -88,6 +88,7 @@ Supported formats:
 - uimage
 - bootldr
 - 7z
+- pe
 
 ## License
 GPL3 (vendored code under original licence)
