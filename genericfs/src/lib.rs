@@ -64,6 +64,7 @@ pub mod xar;
 pub mod xz;
 pub mod zip;
 pub mod epson_rcx;
+pub mod epson_ipl;
 // hsp: no libs
 // UBI-flash?
 // yaffs2

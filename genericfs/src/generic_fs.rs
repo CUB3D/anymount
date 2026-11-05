@@ -58,6 +58,7 @@ use crate::{
 };
 use crate::{chomeos_ota::ChromeosOTAF, cpio::CpioFile, gzip::GzipF};
 use crate::{liblp::LibLPf, mx140::Mx140F};
+use crate::epson_ipl::EpsonIPLF;
 use crate::epson_rcx::EpsonRcxF;
 use crate::garmin::GarminF;
 
@@ -189,6 +190,7 @@ pub const FORMATS: &[&dyn GenericFSHelper] = &[
     &GenericFSHelperImpl::<ApfsF>::INSTANCE,
     &GenericFSHelperImpl::<GarminF>::INSTANCE,
     &GenericFSHelperImpl::<EpsonRcxF>::INSTANCE,
+    &GenericFSHelperImpl::<EpsonIPLF>::INSTANCE,
 ];
 
 

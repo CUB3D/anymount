@@ -90,6 +90,7 @@ Supported formats:
 - 7z
 - pe
 - epson_rcx
+- epson_ipl
 
 ## License
 GPL3 (vendored code under original licence)
