@@ -63,6 +63,7 @@ pub mod garmin;
 pub mod xar;
 pub mod xz;
 pub mod zip;
+pub mod epson_rcx;
 // hsp: no libs
 // UBI-flash?
 // yaffs2
