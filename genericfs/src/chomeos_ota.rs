@@ -8,7 +8,7 @@ use crate::generic_fs_props::GenFSProps;
 use crate::{gen_item::GenItem, generic_fs::GenFS};
 use anyhow::Context;
 use memmap2::Mmap;
-use parse::{ParseError, be_u32, le_u32, take};
+use parse::{be_u32, le_u32, take, be_u64};
 use prost::Message;
 use xz::read::XzDecoder;
 
@@ -39,8 +39,7 @@ impl GenFS for ChromeosOTAF {
             return Err(anyhow::anyhow!("Only version 2 of Chomeos OTA is supported so far, sorry"));
         }
 
-        //TODO: ?
-        let (i, sig_len) = be_u32(i);
+        let (i, sig_len) = be_u32(i)?;
 
         let mut ents = Vec::new();
 
@@ -125,12 +124,4 @@ impl GenFS for ChromeosOTAF {
     fn name(&self) -> &str {
         Self::FORMAT_NAME
     }
-}
-
-//TODO:
-pub fn be_u64(i: &[u8]) -> Result<(&[u8], u64), ParseError> {
-    if i.len() < 8 {
-        return Err(ParseError::NoData);
-    }
-    Ok((&i[8..], u64::from_be_bytes((&i[..8]).try_into().unwrap())))
 }

@@ -3694,8 +3694,8 @@ dependencies = [
 
 [[package]]
 name = "parse"
-version = "0.1.0"
-source = "git+https://github.com/CUB3D/parse-rs?rev=5f2c7befbc473706dbd3a229d356b0a5be504b41#5f2c7befbc473706dbd3a229d356b0a5be504b41"
+version = "0.2.0"
+source = "git+https://github.com/CUB3D/parse-rs?rev=aafecc5aec1828b91a0847bf63f4f138d241a2ed#aafecc5aec1828b91a0847bf63f4f138d241a2ed"
 
 [[package]]
 name = "paste"

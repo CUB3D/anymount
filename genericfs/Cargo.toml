@@ -9,7 +9,7 @@ tar = {  path = "../vendor/tar-rs" }
 lz4_flex = "0.14.0"
 android-sparse = "=0.6.0"
 anyhow = "=1.0.104"
-parse = { git = "https://github.com/CUB3D/parse-rs", rev = "5f2c7befbc473706dbd3a229d356b0a5be504b41", features = ["alloc"] }
+parse = { git = "https://github.com/CUB3D/parse-rs", rev = "aafecc5aec1828b91a0847bf63f4f138d241a2ed", features = ["alloc"] }
 tracing-subscriber = { version = "=0.3.23", features = ["env-filter"] }
 tracing = "=0.1.44"
 memmap2 = "=0.9.11"

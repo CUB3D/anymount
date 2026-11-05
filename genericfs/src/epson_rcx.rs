@@ -1,4 +1,4 @@
-//! Epson RCX
+//! Epson RCX - Used in some printer firmwares
 
 use std::collections::BTreeMap;
 use memmap2::Mmap;
