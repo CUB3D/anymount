@@ -5,7 +5,10 @@ use crate::gen_item::BufGenItm;
 use crate::generic_fs_props::GenFSProps;
 use crate::{gen_item::GenItem, generic_fs::GenFS};
 use memmap2::Mmap;
-use parse::{be_u16, be_u24, be_u32, le_u16, le_u24, le_u32, ne_u8};
+use parse::be_u16;
+use parse::le_u16;
+use parse::le_u24;
+use parse::ne_u8;
 
 pub struct EpsonIPLF {
     pub idx: usize,

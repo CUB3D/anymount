@@ -47,7 +47,7 @@ pub mod sniff_dtbo;
 pub mod sniff_esp32;
 pub mod sniff_f2fs;
 pub mod sniff_fbpt;
-pub mod sniff_ftab;
+pub mod apple_ftab;
 pub mod sniff_mtk_hblr;
 pub mod sniff_shannon;
 pub mod sniff_uimage;

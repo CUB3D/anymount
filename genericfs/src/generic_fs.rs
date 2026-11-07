@@ -40,7 +40,7 @@ use crate::sniff_dtbo::DtboF;
 use crate::sniff_esp32::Esp32F;
 use crate::sniff_f2fs::F2fsF;
 use crate::sniff_fbpt::FbptF;
-use crate::sniff_ftab::FtabF;
+use crate::apple_ftab::FtabF;
 use crate::sniff_mtk_hblr::MtkHblrF;
 use crate::sniff_shannon::ShannonF;
 use crate::sniff_uimage::UbootUImgF;
