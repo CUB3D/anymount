@@ -7,6 +7,7 @@ pub mod apfs;
 pub mod ar;
 pub mod bzip;
 pub mod chomeos_ota;
+pub mod cramfs;
 pub mod cpio;
 pub mod der_cert;
 pub mod dmg;
@@ -68,6 +69,5 @@ pub mod epson_ipl;
 // hsp: no libs
 // UBI-flash?
 // yaffs2
-// cramfs
 
 // tar uses too much memory, write our own lib

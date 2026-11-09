@@ -51,6 +51,7 @@ Supported formats:
 - abootimg
 - ohos
 - erofs
+- cramfs
 - cpio
 - tar
 - unix_ar

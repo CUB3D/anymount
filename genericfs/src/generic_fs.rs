@@ -12,6 +12,7 @@ use crate::bzip::BzipF;
 use crate::der_cert::DerCertF;
 use crate::dmg::DmgF;
 use crate::dtb::DtbF;
+use crate::cramfs::CramfsF;
 use crate::erofs::ErofsF;
 use crate::ext4::Ext4F;
 use crate::fbpack::FbpackF;
@@ -149,6 +150,7 @@ pub const FORMATS: &[&dyn GenericFSHelper] = &[
     &GenericFSHelperImpl::<AbootimgF>::INSTANCE,
     &GenericFSHelperImpl::<OhosF>::INSTANCE,
     &GenericFSHelperImpl::<ErofsF>::INSTANCE,
+    &GenericFSHelperImpl::<CramfsF>::INSTANCE,
     &GenericFSHelperImpl::<CpioFile>::INSTANCE,
     &GenericFSHelperImpl::<TarFile>::INSTANCE,
     &GenericFSHelperImpl::<UnixArF>::INSTANCE,
